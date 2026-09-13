@@ -31,8 +31,8 @@ use SocialWeb\Rdf\Exception\InvalidArgument;
 
 use function array_values;
 use function count;
+use function serialize;
 use function sprintf;
-use function strlen;
 
 /**
  * An RDF dataset: an ordered set of unique quads
@@ -101,32 +101,31 @@ final class Dataset implements Countable, IteratorAggregate
      * Builds a string that is identical for equal quads and distinct for
      * unequal ones
      *
-     * Each component is tagged with its kind and each string is prefixed with
-     * its byte length, so no combination of components can collide.
+     * The four term keys are combined with `serialize()`, which is binary-safe
+     * and records the byte length of every string it writes. The encoding is
+     * therefore uniquely decodable: no combination of components can produce
+     * the same string as a different combination.
      */
     private static function keyOf(Quad $quad): string
     {
-        return self::termKey($quad->subject)
-            . self::termKey($quad->predicate)
-            . self::termKey($quad->object)
-            . self::termKey($quad->graph);
+        return serialize([
+            self::termKey($quad->subject),
+            self::termKey($quad->predicate),
+            self::termKey($quad->object),
+            self::termKey($quad->graph),
+        ]);
     }
 
     private static function termKey(Term | GraphName $term): string
     {
-        return match (true) {
-            $term instanceof Iri => 'I' . self::lengthPrefixed($term->value),
-            $term instanceof BlankNode => 'B' . self::lengthPrefixed($term->identifier),
-            $term instanceof Literal => 'L' . self::lengthPrefixed($term->lexicalForm)
-                . self::lengthPrefixed($term->datatype->value)
-                . ($term->language === null ? 'N' : 'T' . self::lengthPrefixed($term->language)),
-            $term instanceof DefaultGraph => 'D',
+        $values = match (true) {
+            $term instanceof Iri => [$term->value],
+            $term instanceof BlankNode => [$term->identifier],
+            $term instanceof Literal => [$term->lexicalForm, $term->datatype->value, $term->language],
+            $term instanceof DefaultGraph => [],
             default => throw new InvalidArgument(sprintf('Unsupported term type %s', $term::class)),
         };
-    }
 
-    private static function lengthPrefixed(string $value): string
-    {
-        return strlen($value) . ':' . $value;
+        return serialize([$term::class, $values]);
     }
 }
