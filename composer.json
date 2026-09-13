@@ -1,5 +1,5 @@
 {
-    "name": "ramsey/rdf",
+    "name": "socialweb/rdf",
     "description": "",
     "license": "LGPL-3.0-or-later",
     "type": "library",
@@ -8,13 +8,11 @@
         "directed graph",
         "metadata"
     ],
-    "authors": [
-        {
-            "name": "Ben Ramsey",
-            "email": "ben@ramsey.dev",
-            "homepage": "https://ben.ramsey.dev"
-        }
-    ],
+    "support": {
+        "issues": "https://github.com/socialweb-php/rdf/issues",
+        "forum": "https://github.com/socialweb-php/rdf/discussions",
+        "security": "https://github.com/socialweb-php/rdf/security/policy"
+    },
     "require": {
         "php": "^8.5"
     },
@@ -35,12 +33,12 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "Ramsey\\Rdf\\": "src/"
+            "SocialWeb\\Rdf\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Ramsey\\Test\\Rdf\\": "tests/"
+            "SocialWeb\\Test\\Rdf\\": "tests/"
         }
     },
     "config": {

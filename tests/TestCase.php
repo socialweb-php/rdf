@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Ramsey\Test\Rdf;
+namespace SocialWeb\Test\Rdf;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 

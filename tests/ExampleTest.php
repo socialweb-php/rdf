@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Ramsey\Test\Rdf;
+namespace SocialWeb\Test\Rdf;
 
-use Ramsey\Rdf\Example;
+use SocialWeb\Rdf\Example;
 
 class ExampleTest extends TestCase
 {

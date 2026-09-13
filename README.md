@@ -1,4 +1,4 @@
-<h1 align="center">ramsey/rdf</h1>
+<h1 align="center">socialweb/rdf</h1>
 
 
 <!--
@@ -7,13 +7,12 @@ TODO: Make sure the following URLs are correct and working for your project.
       overview of your package.
 
 <p align="center">
-    <a href="https://github.com/ramsey/rdf"><img src="https://img.shields.io/badge/source-ramsey/rdf-blue.svg?style=flat-square" alt="Source Code"></a>
-    <a href="https://packagist.org/packages/ramsey/rdf"><img src="https://img.shields.io/packagist/v/ramsey/rdf.svg?style=flat-square&label=release" alt="Download Package"></a>
-    <a href="https://php.net"><img src="https://img.shields.io/packagist/php-v/ramsey/rdf.svg?style=flat-square&colorB=%238892BF" alt="PHP Programming Language"></a>
-    <a href="https://github.com/ramsey/rdf/blob/main/LICENSE"><img src="https://img.shields.io/packagist/l/ramsey/rdf.svg?style=flat-square&colorB=darkcyan" alt="Read License"></a>
-    <a href="https://github.com/ramsey/rdf/actions/workflows/continuous-integration.yml"><img src="https://img.shields.io/github/actions/workflow/status/ramsey/rdf/continuous-integration.yml?branch=main&style=flat-square&logo=github" alt="Build Status"></a>
-    <a href="https://codecov.io/gh/ramsey/rdf"><img src="https://img.shields.io/codecov/c/gh/ramsey/rdf?label=codecov&logo=codecov&style=flat-square" alt="Codecov Code Coverage"></a>
-    <a href="https://shepherd.dev/github/ramsey/rdf"><img src="https://img.shields.io/endpoint?style=flat-square&url=https%3A%2F%2Fshepherd.dev%2Fgithub%2Framsey%2Frdf%2Fcoverage" alt="Psalm Type Coverage"></a>
+    <a href="https://github.com/socialweb-php/rdf"><img src="https://img.shields.io/badge/source-socialweb/rdf-blue.svg?style=flat-square" alt="Source Code"></a>
+    <a href="https://packagist.org/packages/socialweb/rdf"><img src="https://img.shields.io/packagist/v/socialweb/rdf.svg?style=flat-square&label=release" alt="Download Package"></a>
+    <a href="https://php.net"><img src="https://img.shields.io/packagist/php-v/socialweb/rdf.svg?style=flat-square&colorB=%238892BF" alt="PHP Programming Language"></a>
+    <a href="https://github.com/socialweb-php/rdf/blob/main/LICENSE"><img src="https://img.shields.io/packagist/l/socialweb/rdf.svg?style=flat-square&colorB=darkcyan" alt="Read License"></a>
+    <a href="https://github.com/socialweb-php/rdf/actions/workflows/continuous-integration.yml"><img src="https://img.shields.io/github/actions/workflow/status/socialweb-php/rdf/continuous-integration.yml?branch=main&style=flat-square&logo=github" alt="Build Status"></a>
+    <a href="https://codecov.io/gh/socialweb-php/rdf"><img src="https://img.shields.io/codecov/c/gh/socialweb-php/rdf?label=codecov&logo=codecov&style=flat-square" alt="Codecov Code Coverage"></a>
 </p>
 -->
 
@@ -37,7 +36,7 @@ uphold this code.
 Install this package as a dependency using [Composer](https://getcomposer.org).
 
 ``` bash
-composer require ramsey/rdf
+composer require socialweb/rdf
 ```
 
 <!--
@@ -48,7 +47,7 @@ If you need to provide more detailed examples, use the `docs/` directory
 and provide a link here to the documentation.
 
 ``` php
-use Ramsey\Rdf\Example;
+use SocialWeb\Rdf\Example;
 
 $example = new Example();
 echo $example->greet('fellow human');
@@ -75,7 +74,7 @@ security issue in software that is maintained in this repository, please read
 
 ## Copyright and License
 
-ramsey/rdf is copyright © [Ben Ramsey](https://ben.ramsey.dev)
+socialweb/rdf is copyright © the socialweb/rdf Contributors
 and licensed for use under the terms of the
 GNU Lesser General Public License (LGPL-3.0-or-later) as published by the Free
 Software Foundation. Please see [COPYING.LESSER](COPYING.LESSER),
