@@ -21,18 +21,26 @@
 
 declare(strict_types=1);
 
-namespace SocialWeb\Rdf;
+namespace SocialWeb\Rdf\Exception;
+
+use RuntimeException;
+use Throwable;
+
+use function sprintf;
 
 /**
- * An example class to act as a starting point for developing your library
+ * Thrown when canonicalization reaches its deep iteration limit
+ *
+ * RDF Dataset Canonicalization requires implementations to terminate early on
+ * inputs that would otherwise take unbounded time. See RDFC-1.0 section 7.1.
  */
-class Example
+final class IterationLimitExceeded extends RuntimeException implements RdfException
 {
     /**
-     * Returns a greeting statement using the provided name
+     * @param int $limit The limit that was reached
      */
-    public function greet(string $name = 'World'): string
+    public function __construct(public readonly int $limit, ?Throwable $previous = null)
     {
-        return "Hello, {$name}!";
+        parent::__construct(sprintf('Canonicalization exceeded the deep iteration limit of %d', $limit), 0, $previous);
     }
 }
