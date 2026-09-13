@@ -20,6 +20,7 @@
         "captainhook/plugin-composer": "^5.3",
         "ergebnis/composer-normalize": "^2.53",
         "fakerphp/faker": "^1.24",
+        "infection/infection": "^0.35",
         "phpstan/extension-installer": "^1.4",
         "phpstan/phpstan": "^2.2",
         "phpstan/phpstan-phpunit": "^2.0",
@@ -46,6 +47,7 @@
             "captainhook/plugin-composer": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
             "ergebnis/composer-normalize": true,
+            "infection/extension-installer": true,
             "php-http/discovery": true,
             "phpstan/extension-installer": true,
             "ramsey/composer-repl": true
@@ -77,6 +79,7 @@
             "vendor/bin/phpcs --colors --cache=build/phpcs-cache",
             "vendor/bin/phpstan analyze --ansi -v --memory-limit=1G"
         ],
+        "mutation": "XDEBUG_MODE=coverage vendor/bin/infection --threads=max --min-msi=90 --min-covered-msi=95 --show-mutations",
         "test": "vendor/bin/phpunit --colors=always"
     }
 }
