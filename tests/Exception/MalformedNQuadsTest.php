@@ -36,6 +36,7 @@ class MalformedNQuadsTest extends TestCase
             'Malformed N-Quads at line 3, column 12: unterminated string literal. Offending line: <a> <b> "oops .',
             $exception->getMessage(),
         );
+        $this->assertSame(0, $exception->getCode());
     }
 
     public function testAcceptsPreviousThrowable(): void

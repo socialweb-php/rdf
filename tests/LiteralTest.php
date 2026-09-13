@@ -49,9 +49,11 @@ class LiteralTest extends TestCase
 
     public function testAcceptsRdfLangStringWithALanguageTag(): void
     {
-        $literal = new Literal('hello', new Iri(Rdf::LANG_STRING), 'en');
+        $langString = new Iri(Rdf::LANG_STRING);
+        $literal = new Literal('hello', $langString, 'en');
 
         $this->assertSame(Rdf::LANG_STRING, $literal->datatype->value);
+        $this->assertSame($langString, $literal->datatype);
         $this->assertSame('en', $literal->language);
     }
 

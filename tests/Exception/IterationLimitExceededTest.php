@@ -31,6 +31,7 @@ class IterationLimitExceededTest extends TestCase
 
         $this->assertSame(42, $exception->limit);
         $this->assertSame('Canonicalization exceeded the deep iteration limit of 42', $exception->getMessage());
+        $this->assertSame(0, $exception->getCode());
     }
 
     public function testAcceptsPreviousThrowable(): void

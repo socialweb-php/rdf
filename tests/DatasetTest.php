@@ -99,9 +99,33 @@ class DatasetTest extends TestCase
             new Quad(new BlankNode('s'), new Iri('a:p'), new Literal('o')),
             new Quad(new Iri('a:s'), new Iri('a:p'), new Literal('o'), new BlankNode('g')),
             new Quad(new Iri('a:s'), new Iri('a:p'), new Literal('o'), new Iri('a:g')),
+            new Quad(new Iri('a:s'), new Iri('a:p'), new Literal('', new Iri('a:a:'))),
+            new Quad(new Iri('a:s'), new Iri('a:p'), new Literal(':a', new Iri('a:'))),
         ]);
 
-        $this->assertCount(9, $dataset);
+        $this->assertCount(11, $dataset);
+    }
+
+    public function testDistinguishesQuadsByPredicate(): void
+    {
+        $dataset = new Dataset([
+            new Quad(new Iri('a:s'), new Iri('a:p1'), new Iri('a:o')),
+            new Quad(new Iri('a:s'), new Iri('a:p2'), new Iri('a:o')),
+        ]);
+
+        $this->assertCount(2, $dataset);
+    }
+
+    public function testDistinguishesQuadsByComponentValueWithinTheSameType(): void
+    {
+        $dataset = new Dataset([
+            new Quad(new Iri('a:s1'), new Iri('a:p'), new Iri('a:o')),
+            new Quad(new Iri('a:s2'), new Iri('a:p'), new Iri('a:o')),
+            new Quad(new BlankNode('b1'), new Iri('a:p'), new Iri('a:o')),
+            new Quad(new BlankNode('b2'), new Iri('a:p'), new Iri('a:o')),
+        ]);
+
+        $this->assertCount(4, $dataset);
     }
 
     public function testDistinguishesLiteralsByDatatypeAndLanguage(): void

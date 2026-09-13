@@ -62,6 +62,15 @@ class BlankNodeTest extends TestCase
         $this->assertSame(1, preg_match(Grammar::BLANK_NODE_LABEL, $blankNode->identifier));
     }
 
+    public function testGenerateProducesIdentifiersOfTheExpectedShape(): void
+    {
+        for ($i = 0; $i < 20; $i++) {
+            $identifier = BlankNode::generate()->identifier;
+
+            $this->assertMatchesRegularExpression('/^b[0-9a-f]{32}$/', $identifier);
+        }
+    }
+
     public function testGenerateProducesDistinctIdentifiers(): void
     {
         $this->assertFalse(BlankNode::generate()->equals(BlankNode::generate()));
