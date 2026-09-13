@@ -28,6 +28,9 @@ namespace SocialWeb\Rdf;
  * blank node
  *
  * RDF 1.1 Concepts has no name for this union. The name follows Apache Jena.
+ * This interface is sealed by convention: the classes this library ships are
+ * the only supported implementations, and `Dataset` rejects any other
+ * implementation with `InvalidArgument`.
  */
 interface Resource extends Term
 {

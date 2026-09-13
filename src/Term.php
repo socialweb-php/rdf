@@ -26,7 +26,9 @@ namespace SocialWeb\Rdf;
 /**
  * An RDF term: an IRI, a blank node, or a literal
  *
- * See RDF 1.1 Concepts section 3.
+ * See RDF 1.1 Concepts section 3. This interface is sealed by convention: the
+ * classes this library ships are the only supported implementations, and
+ * `Dataset` rejects any other implementation with `InvalidArgument`.
  */
 interface Term
 {

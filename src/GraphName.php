@@ -26,6 +26,10 @@ namespace SocialWeb\Rdf;
 /**
  * A value that may appear in the graph position of a quad: an IRI, a blank
  * node, or the default graph
+ *
+ * This interface is sealed by convention: the classes this library ships are
+ * the only supported implementations, and `Dataset` rejects any other
+ * implementation with `InvalidArgument`.
  */
 interface GraphName
 {

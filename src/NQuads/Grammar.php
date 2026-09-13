@@ -67,7 +67,7 @@ final class Grammar
     public const string IRIREF_FORBIDDEN = '/[\x00-\x20<>"{}|^`\\\\]/u';
 
     /**
-     * Matches the scheme of an absolute IRI, per RFC 3987
+     * Matches the scheme of an absolute IRI, per RFC 3986 section 3.1
      */
     public const string SCHEME = '/\A[A-Za-z][A-Za-z0-9+.\-]*:/';
 }

@@ -23,6 +23,7 @@ declare(strict_types=1);
 
 namespace SocialWeb\Rdf;
 
+use Random\RandomException;
 use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\NQuads\Grammar;
 
@@ -57,6 +58,8 @@ final readonly class BlankNode implements GraphName, Resource
 
     /**
      * Returns a blank node with a fresh, random identifier
+     *
+     * @throws RandomException if the system cannot supply random bytes
      */
     public static function generate(): self
     {

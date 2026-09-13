@@ -53,6 +53,9 @@ final class Dataset implements Countable, IteratorAggregate
 
     /**
      * @param iterable<Quad> $quads Quads to add, in order
+     *
+     * @throws InvalidArgument if a quad holds a term that is not one of this
+     *     library's own term classes
      */
     public function __construct(iterable $quads = [])
     {
@@ -61,16 +64,28 @@ final class Dataset implements Countable, IteratorAggregate
         }
     }
 
+    /**
+     * @throws InvalidArgument if the quad holds a term that is not one of this
+     *     library's own term classes
+     */
     public function add(Quad $quad): void
     {
         $this->quads[self::keyOf($quad)] ??= $quad;
     }
 
+    /**
+     * @throws InvalidArgument if the quad holds a term that is not one of this
+     *     library's own term classes
+     */
     public function remove(Quad $quad): void
     {
         unset($this->quads[self::keyOf($quad)]);
     }
 
+    /**
+     * @throws InvalidArgument if the quad holds a term that is not one of this
+     *     library's own term classes
+     */
     public function contains(Quad $quad): bool
     {
         return isset($this->quads[self::keyOf($quad)]);
