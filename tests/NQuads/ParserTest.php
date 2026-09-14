@@ -11,8 +11,11 @@ use SocialWeb\Rdf\DefaultGraph;
 use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\MalformedNQuads;
 use SocialWeb\Rdf\Iri;
+use SocialWeb\Rdf\Literal;
 use SocialWeb\Rdf\NQuads\Parser;
 use SocialWeb\Rdf\Quad;
+use SocialWeb\Rdf\Vocabulary\Rdf;
+use SocialWeb\Rdf\Vocabulary\Xsd;
 use SocialWeb\Test\Rdf\TestCase;
 
 use function iterator_to_array;
@@ -99,6 +102,115 @@ class ParserTest extends TestCase
         yield 'underscore' => ['_x'];
         yield 'non-ASCII' => ['état'];
         yield 'mixed case' => ['B0'];
+    }
+
+    public function testParsesASimpleLiteralAsXsdString(): void
+    {
+        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "Alice" .')->toArray();
+
+        $this->assertTrue(new Literal('Alice')->equals($quads[0]->object));
+        $this->assertInstanceOf(Literal::class, $quads[0]->object);
+        $this->assertSame(Xsd::STRING, $quads[0]->object->datatype->value);
+    }
+
+    public function testParsesALanguageTaggedLiteral(): void
+    {
+        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "Alice"@en-US .')->toArray();
+
+        $this->assertInstanceOf(Literal::class, $quads[0]->object);
+        $this->assertSame('Alice', $quads[0]->object->lexicalForm);
+        $this->assertSame('en-us', $quads[0]->object->language);
+        $this->assertSame(Rdf::LANG_STRING, $quads[0]->object->datatype->value);
+    }
+
+    public function testParsesADatatypedLiteral(): void
+    {
+        $quads = (new Parser())->parse(
+            '<http://a/s> <http://a/p> "42"^^<http://www.w3.org/2001/XMLSchema#integer> .',
+        )->toArray();
+
+        $this->assertTrue(new Literal('42', new Iri('http://www.w3.org/2001/XMLSchema#integer'))
+            ->equals($quads[0]->object));
+    }
+
+    public function testParsesAnExplicitXsdStringDatatype(): void
+    {
+        $quads = (new Parser())->parse(
+            '<http://a/s> <http://a/p> "42"^^<http://www.w3.org/2001/XMLSchema#string> .',
+        )->toArray();
+
+        $this->assertTrue(new Literal('42')->equals($quads[0]->object));
+    }
+
+    public function testParsesAnEmptyLiteral(): void
+    {
+        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "" .')->toArray();
+
+        $this->assertTrue(new Literal('')->equals($quads[0]->object));
+    }
+
+    #[DataProvider('escapedLiterals')]
+    public function testDecodesEscapesInLiterals(string $encoded, string $decoded): void
+    {
+        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "' . $encoded . '" .')->toArray();
+
+        $this->assertInstanceOf(Literal::class, $quads[0]->object);
+        $this->assertSame($decoded, $quads[0]->object->lexicalForm);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function escapedLiterals(): iterable
+    {
+        yield 'tab' => ['a\tb', "a\tb"];
+        yield 'backspace' => ['a\bb', "a\x08b"];
+        yield 'line feed' => ['a\nb', "a\nb"];
+        yield 'carriage return' => ['a\rb', "a\rb"];
+        yield 'form feed' => ['a\fb', "a\x0Cb"];
+        yield 'quotation mark' => ['a\"b', 'a"b'];
+        yield 'apostrophe' => ["a\\'b", "a'b"];
+        yield 'backslash' => ['a\\\\b', 'a\\b'];
+        yield 'backslash before quotation mark' => ['a\\\\\"b', 'a\\"b'];
+        yield 'all ECHARs' => ['\t\b\n\r\f\"\'\\\\', "\t\x08\n\r\x0C\"'\\"];
+        yield 'short escape, lowercase hex' => ['\u00e9', 'é'];
+        yield 'short escape, uppercase hex' => ['\u00E9', 'é'];
+        yield 'long escape' => ['\U0001F600', '😀'];
+        yield 'long escape of a BMP code point' => ['\U000000E9', 'é'];
+        yield 'escaped NUL' => ['\u0000', "\x00"];
+        yield 'escaped DEL' => ['\u007F', "\x7F"];
+        yield 'escape adjacent to text' => ['a\u00E9b', 'aéb'];
+        yield 'two escapes in a row' => ['\u00E9\u20AC', 'é€'];
+        yield 'escape at the end' => ['a\u00E9', 'aé'];
+        yield 'native non-ASCII' => ['é€😀', 'é€😀'];
+        yield 'text with no escapes' => ['plain', 'plain'];
+    }
+
+    #[DataProvider('utf8Boundaries')]
+    public function testEncodesEveryUtf8SequenceLengthCorrectly(string $encoded, string $decoded): void
+    {
+        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "' . $encoded . '" .')->toArray();
+
+        $this->assertInstanceOf(Literal::class, $quads[0]->object);
+        $this->assertSame($decoded, $quads[0]->object->lexicalForm);
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function utf8Boundaries(): iterable
+    {
+        yield 'U+0001' => ['\u0001', "\u{1}"];
+        yield 'U+007F, last one-byte sequence' => ['\u007F', "\u{7F}"];
+        yield 'U+0080, first two-byte sequence' => ['\u0080', "\u{80}"];
+        yield 'U+07FF, last two-byte sequence' => ['\u07FF', "\u{7FF}"];
+        yield 'U+0800, first three-byte sequence' => ['\u0800', "\u{800}"];
+        yield 'U+D7FF, last code point before the surrogates' => ['\uD7FF', "\u{D7FF}"];
+        yield 'U+E000, first code point after the surrogates' => ['\uE000', "\u{E000}"];
+        yield 'U+FFFD' => ['\uFFFD', "\u{FFFD}"];
+        yield 'U+FFFF, last three-byte sequence' => ['\uFFFF', "\u{FFFF}"];
+        yield 'U+10000, first four-byte sequence' => ['\U00010000', "\u{10000}"];
+        yield 'U+10FFFF, last code point' => ['\U0010FFFF', "\u{10FFFF}"];
     }
 
     public function testDecodesEscapesInIris(): void
@@ -373,6 +485,61 @@ class ParserTest extends TestCase
         ];
         yield 'comment lines are counted' => ["# one\n# two\n<http://a/s>", 3, 13, $predicate];
         yield 'column counts tabs as one' => ["\t\t<http://a/s>", 1, 15, $predicate];
+        yield 'long double-quoted object' => ['<http://a/s> <http://a/p> """o""" .', 1, 29, $terminator];
+        yield 'simple literal graph label' => ['<http://a/s> <http://a/p> <http://a/o> "g" .', 1, 40, $terminator];
+        yield 'language-tagged literal graph label' => [
+            '<http://a/s> <http://a/p> <http://a/o> "g"@en .',
+            1,
+            40,
+            $terminator,
+        ];
+        yield 'relative datatype' => ['<http://a/s> <http://a/p> "o"^^<dt> .', 1, 32, 'An IRI must be absolute'];
+        yield 'literal escape naming a high surrogate' => [
+            '<http://a/s> <http://a/p> "\uD800" .',
+            1,
+            27,
+            'An escape in the literal does not denote a Unicode scalar value',
+        ];
+        yield 'literal escape naming a low surrogate' => [
+            '<http://a/s> <http://a/p> "\uDFFF" .',
+            1,
+            27,
+            'An escape in the literal does not denote a Unicode scalar value',
+        ];
+        yield 'literal escape above U+10FFFF' => [
+            '<http://a/s> <http://a/p> "\U00110000" .',
+            1,
+            27,
+            'An escape in the literal does not denote a Unicode scalar value',
+        ];
+        yield 'literal escape far above U+10FFFF' => [
+            '<http://a/s> <http://a/p> "\UFFFFFFFF" .',
+            1,
+            27,
+            'An escape in the literal does not denote a Unicode scalar value',
+        ];
+        yield 'unterminated literal' => ['<http://a/s> <http://a/p> "o .', 1, 27, 'Malformed string literal'];
+        yield 'mismatched quotes' => ["<http://a/s> <http://a/p> \"o' .", 1, 27, 'Malformed string literal'];
+        yield 'bad ECHAR' => ['<http://a/s> <http://a/p> "a\zb" .', 1, 27, 'Malformed string literal'];
+        yield 'bad short UCHAR' => ['<http://a/s> <http://a/p> "\uWXYZ" .', 1, 27, 'Malformed string literal'];
+        yield 'bad long UCHAR' => ['<http://a/s> <http://a/p> "\U0000WXYZ" .', 1, 27, 'Malformed string literal'];
+        yield 'bad language tag' => ['<http://a/s> <http://a/p> "o"@1 .', 1, 30, 'Malformed language tag'];
+        yield 'empty language tag' => ['<http://a/s> <http://a/p> "o"@ .', 1, 30, 'Malformed language tag'];
+        yield 'missing datatype' => ['<http://a/s> <http://a/p> "o"^^ .', 1, 32, "Expected a datatype IRI after '^^'"];
+        yield 'single caret' => ['<http://a/s> <http://a/p> "o"^<http://a/dt> .', 1, 30, $terminator];
+        yield 'both a language tag and a datatype' => [
+            '<http://a/s> <http://a/p> "o"@en^^<http://a/dt> .',
+            1,
+            33,
+            $terminator,
+        ];
+        yield 'langString without a language tag' => [
+            '<http://a/s> <http://a/p> "o"^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#langString> .',
+            1,
+            27,
+            'must have a language tag',
+        ];
+        yield 'column counts code points' => ['<http://a/s> <http://a/p> "é€😀" x .', 1, 33, $terminator];
     }
 
     public function testReportsTheOffendingLineAndTheCauseOfATermError(): void

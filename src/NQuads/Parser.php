@@ -30,6 +30,7 @@ use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\MalformedNQuads;
 use SocialWeb\Rdf\GraphName;
 use SocialWeb\Rdf\Iri;
+use SocialWeb\Rdf\Literal;
 use SocialWeb\Rdf\Quad;
 use SocialWeb\Rdf\Resource;
 use SocialWeb\Rdf\Term;
@@ -147,6 +148,7 @@ final class Parser
         return match ($scanner->peek()) {
             '<' => $this->parseIri($scanner),
             '_' => $this->parseBlankNode($scanner),
+            '"' => $this->parseLiteral($scanner),
             default => throw $scanner->error('Expected an IRI, a blank node label, or a literal as the object'),
         };
     }
@@ -191,6 +193,45 @@ final class Parser
         }
 
         return new BlankNode($label);
+    }
+
+    private function parseLiteral(Scanner $scanner): Literal
+    {
+        $start = $scanner->position();
+        $text = $scanner->take(Grammar::STRING_LITERAL_QUOTE_TOKEN);
+
+        if ($text === null) {
+            throw $scanner->error('Malformed string literal');
+        }
+
+        $lexicalForm = $this->unescape($text);
+
+        if ($lexicalForm === null) {
+            throw $scanner->error('An escape in the literal does not denote a Unicode scalar value', $start);
+        }
+
+        $datatype = null;
+        $language = null;
+
+        if ($scanner->accept('^^')) {
+            if ($scanner->peek() !== '<') {
+                throw $scanner->error("Expected a datatype IRI after '^^'");
+            }
+
+            $datatype = $this->parseIri($scanner);
+        } elseif ($scanner->peek() === '@') {
+            $language = $scanner->take(Grammar::LANGTAG_TOKEN);
+
+            if ($language === null) {
+                throw $scanner->error('Malformed language tag');
+            }
+        }
+
+        try {
+            return new Literal($lexicalForm, $datatype, $language);
+        } catch (InvalidArgument $exception) {
+            throw $scanner->error($exception->getMessage(), $start, $exception);
+        }
     }
 
     /**
