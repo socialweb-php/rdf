@@ -252,6 +252,24 @@ class ParserTest extends TestCase
         $this->assertCount(1, (new Parser())->parse('<http://a/s> <http://a/p> <http://a/o> .'));
     }
 
+    public function testAcceptsMixedLineEndingsInOneDocument(): void
+    {
+        $document = "<http://a/s> <http://a/p> <http://a/o1> .\r\n"
+            . "<http://a/s> <http://a/p> <http://a/o2> .\r"
+            . "<http://a/s> <http://a/p> <http://a/o3> .\n"
+            . "\r\n"
+            . "<http://a/s> <http://a/p> <http://a/o4> .\r";
+
+        $objects = [];
+
+        foreach ((new Parser())->parse($document) as $quad) {
+            $this->assertInstanceOf(Iri::class, $quad->object);
+            $objects[] = $quad->object->value;
+        }
+
+        $this->assertSame(['http://a/o1', 'http://a/o2', 'http://a/o3', 'http://a/o4'], $objects);
+    }
+
     #[DataProvider('whitespaceVariations')]
     public function testAcceptsWhitespaceAndCommentsAroundTerms(string $document): void
     {
@@ -589,6 +607,13 @@ class ParserTest extends TestCase
             'must have a language tag',
         ];
         yield 'column counts code points' => ['<http://a/s> <http://a/p> "é€😀" x .', 1, 33, $terminator];
+        yield 'mixed line endings each count as one line break' => [
+            "<http://a/s> <http://a/p> <http://a/o1> .\r\n<http://a/s> <http://a/p> <http://a/o2> .\r"
+            . "<http://a/s> <http://a/p> <http://a/o3> .\n\r\n<http://a/s> <http://a/p> <http://a/o4> .\rx",
+            6,
+            1,
+            $subject,
+        ];
     }
 
     public function testReportsTheOffendingLineAndTheCauseOfATermError(): void

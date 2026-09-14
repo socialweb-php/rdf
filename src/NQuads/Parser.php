@@ -36,10 +36,9 @@ use SocialWeb\Rdf\Resource;
 use SocialWeb\Rdf\Term;
 
 use function chr;
-use function explode;
 use function intval;
 use function preg_match;
-use function str_replace;
+use function strcspn;
 use function strpos;
 use function substr;
 
@@ -70,8 +69,9 @@ final class Parser
     /**
      * Yields one quad per statement as the document is read
      *
-     * Nothing is parsed until the returned iterable is consumed, and it may be
-     * traversed only once. A caller that never consumes it never sees a
+     * The document is walked in place, one line at a time, so no second copy
+     * of it is made. Nothing is parsed until the returned iterable is consumed,
+     * and it may be traversed only once. A caller that never consumes it never sees a
      * {@see MalformedNQuads}, however malformed the document is.
      *
      * @return iterable<int, Quad>
@@ -80,15 +80,27 @@ final class Parser
      */
     public function parseQuads(string $document): iterable
     {
-        $lines = explode("\n", str_replace(["\r\n", "\r"], "\n", $document));
+        $offset = 0;
+        $lineNumber = 0;
 
-        foreach ($lines as $index => $line) {
-            $quad = $this->parseLine($line, $index + 1);
+        do {
+            $lineLength = strcspn($document, "\r\n", $offset);
+            $lineNumber++;
+            $quad = $this->parseLine(substr($document, $offset, $lineLength), $lineNumber);
+            $offset += $lineLength;
+
+            // A line break is CRLF, CR, or LF, and CRLF counts as one break.
+            // At the end of the document the offset simply moves past it.
+            if (substr($document, $offset, 2) === "\r\n") {
+                $offset += 2;
+            } else {
+                $offset++;
+            }
 
             if ($quad instanceof Quad) {
                 yield $quad;
             }
-        }
+        } while (isset($document[$offset]));
     }
 
     /**
