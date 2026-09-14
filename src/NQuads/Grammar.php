@@ -37,6 +37,12 @@ namespace SocialWeb\Rdf\NQuads;
  * that may see non-ASCII input carry the `u` modifier and therefore fail to
  * match (returning false) on input that is not valid UTF-8.
  *
+ * There is no token pattern for IRIREF or STRING_LITERAL_QUOTE. A pattern for
+ * either one repeats an alternation once per character, which exhausts the
+ * regular expression engine's stack on a long term, so {@see Scanner} scans
+ * those two bodies itself and uses the `*_ESCAPE_TOKEN` patterns here to
+ * validate one escape at a time.
+ *
  * @internal
  *
  * @link https://www.w3.org/TR/n-quads/#sec-grammar
@@ -62,7 +68,7 @@ final class Grammar
 
     public const string HEX = '[0-9A-Fa-f]';
 
-    public const string UCHAR = '\\\\u' . self::HEX . '{4}|\\\\U' . self::HEX . '{8}';
+    public const string UCHAR = '(?:\\\\u' . self::HEX . '{4}|\\\\U' . self::HEX . '{8})';
 
     public const string ECHAR = '\\\\[tbnrf"\'\\\\]';
 
@@ -88,23 +94,22 @@ final class Grammar
     public const string SCHEME = '/\A[A-Za-z][A-Za-z0-9+.\-]*:/';
 
     /**
-     * IRIREF at the offset; group 1 is the text between `<` and `>` with
-     * escapes still encoded
+     * One escape from an IRIREF body at the offset; group 1 is the whole
+     * escape. IRIREF allows UCHAR but not ECHAR.
      */
-    public const string IRIREF_TOKEN = '/\G<((?:[^\x00-\x20<>"{}|^`\\\\]|' . self::UCHAR . ')*)>/u';
+    public const string IRIREF_ESCAPE_TOKEN = '/\G(' . self::UCHAR . ')/';
+
+    /**
+     * One escape from a STRING_LITERAL_QUOTE body at the offset; group 1 is
+     * the whole escape
+     */
+    public const string STRING_LITERAL_ESCAPE_TOKEN = '/\G(' . self::ECHAR . '|' . self::UCHAR . ')/';
 
     /**
      * BLANK_NODE_LABEL at the offset; group 1 is the label without `_:`
      */
     public const string BLANK_NODE_LABEL_TOKEN = '/\G_:([' . self::PN_CHARS_U . '0-9]'
         . '(?:[' . self::PN_CHARS . '.]*[' . self::PN_CHARS . '])?)/u';
-
-    /**
-     * STRING_LITERAL_QUOTE at the offset; group 1 is the text between the
-     * quotation marks with escapes still encoded
-     */
-    public const string STRING_LITERAL_QUOTE_TOKEN = '/\G"((?:[^"\\\\\n\r]|'
-        . self::ECHAR . '|' . self::UCHAR . ')*)"/u';
 
     /**
      * LANGTAG at the offset; group 1 is the tag without `@`

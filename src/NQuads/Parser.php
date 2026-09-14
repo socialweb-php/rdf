@@ -70,6 +70,10 @@ final class Parser
     /**
      * Yields one quad per statement as the document is read
      *
+     * Nothing is parsed until the returned iterable is consumed, and it may be
+     * traversed only once. A caller that never consumes it never sees a
+     * {@see MalformedNQuads}, however malformed the document is.
+     *
      * @return iterable<int, Quad>
      *
      * @throws MalformedNQuads
@@ -165,7 +169,7 @@ final class Parser
     private function parseIri(Scanner $scanner): Iri
     {
         $start = $scanner->position();
-        $text = $scanner->take(Grammar::IRIREF_TOKEN);
+        $text = $scanner->takeIriRef();
 
         if ($text === null) {
             throw $scanner->error('Malformed IRI reference');
@@ -198,7 +202,7 @@ final class Parser
     private function parseLiteral(Scanner $scanner): Literal
     {
         $start = $scanner->position();
-        $text = $scanner->take(Grammar::STRING_LITERAL_QUOTE_TOKEN);
+        $text = $scanner->takeStringLiteralQuote();
 
         if ($text === null) {
             throw $scanner->error('Malformed string literal');
@@ -238,10 +242,10 @@ final class Parser
      * Decodes the ECHAR and UCHAR escapes in text that matched IRIREF or
      * STRING_LITERAL_QUOTE
      *
-     * Because the text matched one of those productions, every backslash
-     * starts a well-formed escape. The only remaining failure is a `\u` or
-     * `\U` escape that names a surrogate or a code point above U+10FFFF,
-     * for which this returns null.
+     * Because the scanner accepted the text as one of those productions,
+     * every backslash starts a well-formed escape. The only remaining failure
+     * is a `\u` or `\U` escape that names a surrogate or a code point above
+     * U+10FFFF, for which this returns null.
      */
     private function unescape(string $text): ?string
     {

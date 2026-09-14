@@ -19,6 +19,7 @@ use SocialWeb\Rdf\Vocabulary\Xsd;
 use SocialWeb\Test\Rdf\TestCase;
 
 use function iterator_to_array;
+use function str_repeat;
 
 class ParserTest extends TestCase
 {
@@ -323,6 +324,54 @@ class ParserTest extends TestCase
         $this->expectException(MalformedNQuads::class);
 
         $quads->next();
+    }
+
+    public function testParsesALiteralOfOneHundredThousandCharacters(): void
+    {
+        $lexicalForm = str_repeat('a', 100000);
+
+        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "' . $lexicalForm . '" .')->toArray();
+
+        $this->assertInstanceOf(Literal::class, $quads[0]->object);
+        $this->assertSame($lexicalForm, $quads[0]->object->lexicalForm);
+    }
+
+    public function testParsesAnIriOfOneHundredThousandCharacters(): void
+    {
+        $value = 'http://a/' . str_repeat('x', 100000);
+
+        $quads = (new Parser())->parse('<http://a/s> <http://a/p> <' . $value . '> .')->toArray();
+
+        $this->assertInstanceOf(Iri::class, $quads[0]->object);
+        $this->assertSame($value, $quads[0]->object->value);
+    }
+
+    public function testParsesALiteralOfTensOfThousandsOfEscapes(): void
+    {
+        $encoded = str_repeat('\"', 20000) . str_repeat('\u00E9', 20000);
+        $decoded = str_repeat('"', 20000) . str_repeat('é', 20000);
+
+        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "' . $encoded . '" .')->toArray();
+
+        $this->assertInstanceOf(Literal::class, $quads[0]->object);
+        $this->assertSame($decoded, $quads[0]->object->lexicalForm);
+    }
+
+    public function testRejectsAnUnterminatedLiteralOfOneHundredThousandCharacters(): void
+    {
+        $document = '<http://a/s> <http://a/p> "' . str_repeat('a', 100000) . ' .';
+
+        try {
+            (new Parser())->parse($document);
+        } catch (MalformedNQuads $exception) {
+            $this->assertSame(1, $exception->lineNumber);
+            $this->assertSame(27, $exception->columnNumber);
+            $this->assertStringContainsString('Malformed string literal', $exception->getMessage());
+
+            return;
+        }
+
+        $this->fail('Expected MalformedNQuads to be thrown');
     }
 
     #[DataProvider('malformedDocuments')]
