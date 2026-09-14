@@ -29,10 +29,13 @@ namespace SocialWeb\Rdf\NQuads;
  * Constants are named after the productions in the specification's grammar.
  * The `PN_*` constants ("PN" stands for "prefixed name," because Turtle
  * introduced these character sets for names such as `foaf:name`) are the
- * bodies of character classes; N-Quads reuses them for blank node labels. The
- * remaining constants are complete patterns for use with preg_match().
- * Patterns that may see non-ASCII input carry the `u` modifier and therefore
- * fail to match (returning false) on input that is not valid UTF-8.
+ * bodies of character classes; N-Quads reuses them for blank node labels.
+ * `HEX`, `UCHAR`, and `ECHAR` are pattern fragments. The remaining constants
+ * are complete patterns for use with preg_match(). Those whose names end in
+ * `_TOKEN` are anchored with `\G` so that the parser can match them at a byte
+ * offset into a line; the others are anchored to the whole subject. Patterns
+ * that may see non-ASCII input carry the `u` modifier and therefore fail to
+ * match (returning false) on input that is not valid UTF-8.
  *
  * @internal
  *
@@ -57,6 +60,12 @@ final class Grammar
 
     public const string PN_CHARS = self::PN_CHARS_U . '\-0-9\x{00B7}\x{0300}-\x{036F}\x{203F}-\x{2040}';
 
+    public const string HEX = '[0-9A-Fa-f]';
+
+    public const string UCHAR = '\\\\u' . self::HEX . '{4}|\\\\U' . self::HEX . '{8}';
+
+    public const string ECHAR = '\\\\[tbnrf"\'\\\\]';
+
     /**
      * The label part of BLANK_NODE_LABEL, without the leading `_:`
      */
@@ -77,4 +86,28 @@ final class Grammar
      * Matches the scheme of an absolute IRI, per RFC 3986 section 3.1
      */
     public const string SCHEME = '/\A[A-Za-z][A-Za-z0-9+.\-]*:/';
+
+    /**
+     * IRIREF at the offset; group 1 is the text between `<` and `>` with
+     * escapes still encoded
+     */
+    public const string IRIREF_TOKEN = '/\G<((?:[^\x00-\x20<>"{}|^`\\\\]|' . self::UCHAR . ')*)>/u';
+
+    /**
+     * BLANK_NODE_LABEL at the offset; group 1 is the label without `_:`
+     */
+    public const string BLANK_NODE_LABEL_TOKEN = '/\G_:([' . self::PN_CHARS_U . '0-9]'
+        . '(?:[' . self::PN_CHARS . '.]*[' . self::PN_CHARS . '])?)/u';
+
+    /**
+     * STRING_LITERAL_QUOTE at the offset; group 1 is the text between the
+     * quotation marks with escapes still encoded
+     */
+    public const string STRING_LITERAL_QUOTE_TOKEN = '/\G"((?:[^"\\\\\n\r]|'
+        . self::ECHAR . '|' . self::UCHAR . ')*)"/u';
+
+    /**
+     * LANGTAG at the offset; group 1 is the tag without `@`
+     */
+    public const string LANGTAG_TOKEN = '/\G@([a-zA-Z]+(?:-[a-zA-Z0-9]+)*)/';
 }
