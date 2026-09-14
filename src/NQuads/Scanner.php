@@ -68,7 +68,7 @@ final class Scanner
      * the closing quotation mark, the backslash that starts an escape, and
      * the two line breaks the production forbids
      */
-    private const string STRING_LITERAL_STOPS = "\"\\\\\n\r";
+    private const string STRING_LITERAL_STOPS = "\"\\\n\r";
 
     private int $offset = 0;
 
