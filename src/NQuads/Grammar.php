@@ -45,13 +45,20 @@ final class Grammar
         . '\x{037F}-\x{1FFF}\x{200C}-\x{200D}\x{2070}-\x{218F}\x{2C00}-\x{2FEF}'
         . '\x{3001}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFFD}\x{10000}-\x{EFFFF}';
 
-    public const string PN_CHARS_U = self::PN_CHARS_BASE . '_:';
+    /**
+     * RDF 1.1 N-Quads also lists `:` here. RDF 1.1 erratum 30 removed it so
+     * that blank node labels match Turtle's, RDF 1.2 N-Quads carries the
+     * correction, and the W3C N-Quads syntax test suite rejects labels that
+     * contain a colon. This library follows the erratum.
+     *
+     * @link https://www.w3.org/2001/sw/wiki/RDF1.1_Errata
+     */
+    public const string PN_CHARS_U = self::PN_CHARS_BASE . '_';
 
     public const string PN_CHARS = self::PN_CHARS_U . '\-0-9\x{00B7}\x{0300}-\x{036F}\x{203F}-\x{2040}';
 
     /**
-     * The label part of BLANK_NODE_LABEL, without the leading `_:`. Note that
-     * PN_CHARS_U includes `:`, so a label may itself contain colons.
+     * The label part of BLANK_NODE_LABEL, without the leading `_:`
      */
     public const string BLANK_NODE_LABEL = '/\A[' . self::PN_CHARS_U . '0-9]'
         . '(?:[' . self::PN_CHARS . '.]*[' . self::PN_CHARS . '])?\z/u';

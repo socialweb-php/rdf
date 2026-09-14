@@ -44,8 +44,8 @@ final readonly class BlankNode implements GraphName, Resource
 {
     /**
      * @param string $identifier The label without the `_:` prefix, matching the
-     *     N-Quads BLANK_NODE_LABEL production. The prefix is not stripped; the
-     *     grammar allows colons inside labels, so `_:b0` is itself a valid label
+     *     N-Quads BLANK_NODE_LABEL production as corrected by RDF 1.1 erratum
+     *     30, which removed `:` from the characters a label may contain
      *
      * @throws InvalidArgument if the identifier does not match the production
      */

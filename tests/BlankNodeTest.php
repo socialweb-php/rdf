@@ -30,7 +30,6 @@ class BlankNodeTest extends TestCase
         yield 'letters and digits' => ['b0'];
         yield 'canonical label' => ['c14n12'];
         yield 'single digit' => ['0'];
-        yield 'colon inside' => ['a:b'];
         yield 'non-ASCII' => ['état'];
     }
 
@@ -52,6 +51,7 @@ class BlankNodeTest extends TestCase
         yield 'leading hyphen' => ['-b'];
         yield 'trailing dot' => ['b.'];
         yield 'space' => ['b 0'];
+        yield 'colon inside' => ['a:b'];
         yield 'invalid UTF-8' => ["b\xff"];
     }
 
@@ -87,9 +87,9 @@ class BlankNodeTest extends TestCase
         $this->assertFalse((new BlankNode('b0'))->equals(new BlankNode('B0')));
     }
 
-    public function testDoesNotEqualAnIriWithTheSameString(): void
+    public function testDoesNotEqualAnIri(): void
     {
-        $this->assertFalse((new BlankNode('a:b'))->equals(new Iri('a:b')));
-        $this->assertFalse((new Iri('a:b'))->equals(new BlankNode('a:b')));
+        $this->assertFalse((new BlankNode('b0'))->equals(new Iri('urn:b0')));
+        $this->assertFalse((new Iri('urn:b0'))->equals(new BlankNode('b0')));
     }
 }

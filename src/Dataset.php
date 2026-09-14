@@ -141,6 +141,12 @@ final class Dataset implements Countable, IteratorAggregate
             default => throw new InvalidArgument(sprintf('Unsupported term type %s', $term::class)),
         };
 
+        // No two term classes can produce the same values array: an IRI must
+        // contain a colon, a blank node identifier cannot, a literal has three
+        // elements, and the default graph has none. The class name is kept so
+        // the key stays unambiguous if a term type is added; removing it is not
+        // observable today, so mutation testing ignores this statement.
+        // @infection-ignore-all
         return serialize([$term::class, $values]);
     }
 }

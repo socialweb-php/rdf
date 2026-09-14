@@ -95,7 +95,8 @@ class DatasetTest extends TestCase
             new Quad(new Iri('a:s'), new Iri('a:p'), new Literal('a'), new Iri('b:x')),
             new Quad(new Iri('a:s'), new Iri('a:p'), new Iri('a:o')),
             new Quad(new Iri('a:s'), new Iri('a:p'), new Literal('a:o')),
-            new Quad(new Iri('a:s'), new Iri('a:p'), new BlankNode('a:o')),
+            new Quad(new Iri('a:s'), new Iri('a:p'), new Literal('o')),
+            new Quad(new Iri('a:s'), new Iri('a:p'), new BlankNode('o')),
             new Quad(new BlankNode('s'), new Iri('a:p'), new Literal('o')),
             new Quad(new Iri('a:s'), new Iri('a:p'), new Literal('o'), new BlankNode('g')),
             new Quad(new Iri('a:s'), new Iri('a:p'), new Literal('o'), new Iri('a:g')),
@@ -107,7 +108,7 @@ class DatasetTest extends TestCase
             new Quad(new Iri('a:s'), new Iri('a:p'), new Literal(':13a:cdefgh', new Iri('b:x'))),
         ]);
 
-        $this->assertCount(15, $dataset);
+        $this->assertCount(16, $dataset);
     }
 
     public function testDistinguishesQuadsByPredicate(): void

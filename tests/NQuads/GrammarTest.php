@@ -28,8 +28,6 @@ class GrammarTest extends TestCase
         yield 'letters and digits' => ['b0'];
         yield 'canonical label' => ['c14n0'];
         yield 'leading underscore' => ['_b'];
-        yield 'colon inside' => ['a:b'];
-        yield 'leading colon' => [':b'];
         yield 'hyphen inside' => ['a-b'];
         yield 'dot inside' => ['a.b'];
         yield 'non-ASCII letters' => ['état'];
@@ -53,6 +51,8 @@ class GrammarTest extends TestCase
         yield 'leading dot' => ['.b'];
         yield 'trailing dot' => ['b.'];
         yield 'space' => ['a b'];
+        yield 'colon inside' => ['a:b'];
+        yield 'leading colon' => [':b'];
         yield 'trailing newline' => ["b0\n"];
         yield 'invalid UTF-8' => ["b\xff"];
     }
