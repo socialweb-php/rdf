@@ -12,3 +12,14 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+---
+
+The files under tests/fixtures/n-quads/ are the RDF 1.1 N-Quads test suite
+from the W3C rdf-tests repository, https://github.com/w3c/rdf-tests, taken
+from the directory rdf/rdf11/rdf-n-quads/ at commit
+369a90d1a60c021b746df2e411da0ff36258a758. They are copyright the World Wide
+Web Consortium and are distributed under the W3C Test Suite License and the
+W3C 3-clause BSD License, as described at
+https://www.w3.org/copyright/test-suites-licenses/. They are not part of the
+socialweb/rdf library and are excluded from distribution archives.
