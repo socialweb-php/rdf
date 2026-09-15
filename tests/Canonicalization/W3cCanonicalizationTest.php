@@ -96,14 +96,17 @@ class W3cCanonicalizationTest extends TestCase
         return W3cManifest::entries(W3cManifest::NEGATIVE);
     }
 
-    public function testTheNegativeTestAlsoFailsWithTheDefaultWorkFactor(): void
-    {
-        foreach (W3cManifest::entries(W3cManifest::NEGATIVE) as [$action]) {
-            $dataset = (new Parser())->parse(W3cManifest::read($action));
+    #[DataProvider('negativeTests')]
+    public function testTheNegativeTestAlsoFailsWithTheDefaultWorkFactor(
+        string $action,
+        ?string $result,
+        string $hashAlgorithm,
+        int $workFactor,
+    ): void {
+        $dataset = (new Parser())->parse(W3cManifest::read($action));
 
-            $this->expectException(IterationLimitExceeded::class);
+        $this->expectException(IterationLimitExceeded::class);
 
-            (new Canonicalizer())->canonicalize($dataset);
-        }
+        (new Canonicalizer())->canonicalize($dataset);
     }
 }

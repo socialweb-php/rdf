@@ -99,6 +99,19 @@ class CanonicalizerTest extends TestCase
         $this->assertSame("_:c14n0 <http://a/p> _:c14n0 .\n_:c14n1 <http://a/p> <http://a/o> .\n", $result->toNQuads());
     }
 
+    public function testHandlesABlankNodeInGraphNamePosition(): void
+    {
+        $dataset = (new Parser())->parse("_:a <http://a/p> \"x\" _:g .\n_:g <http://a/p> <http://a/o> .\n");
+
+        $result = (new Canonicalizer())->canonicalize($dataset);
+
+        // Computed with the implementation.
+        $this->assertSame(
+            "_:c14n0 <http://a/p> <http://a/o> .\n_:c14n1 <http://a/p> \"x\" _:c14n0 .\n",
+            $result->toNQuads(),
+        );
+    }
+
     public function testHandlesNumericBlankNodeLabels(): void
     {
         $dataset = (new Parser())->parse("_:0 <http://a/p> _:1 .\n_:1 <http://a/p> <http://a/o> .\n");

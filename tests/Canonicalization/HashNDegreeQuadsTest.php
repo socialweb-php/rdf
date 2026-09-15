@@ -97,6 +97,26 @@ class HashNDegreeQuadsTest extends TestCase
         $this->assertSame(99, $state->remainingDeepIterations);
     }
 
+    public function testSortsRelatedNodesGivenInDescendingDocumentOrder(): void
+    {
+        // e1 and e2 are related to e0 in descending document order, so the
+        // sort() at the top of permutations() must reorder them before the
+        // first permutation is tried.
+        $state = StateBuilder::fromNQuads(
+            "_:e0 <http://a/p> _:e2 .\n_:e0 <http://a/p> _:e1 .\n"
+            . "_:e1 <http://a/q> \"x\" .\n_:e2 <http://a/q> \"y\" .\n",
+        );
+        $issuer = new IdentifierIssuer('b');
+        $issuer->issue('e0');
+
+        $result = self::hasher($state)->hash('e0', $issuer);
+
+        // Computed with the implementation.
+        $this->assertSame('5a546283a660a3d15769f44eb260adf6a6dd3fac47df81756d1542cffd41bff6', $result->hash);
+        $this->assertSame(['e0' => 'b0', 'e1' => 'b1', 'e2' => 'b2'], $result->issuer->issued());
+        $this->assertSame(97, $state->remainingDeepIterations);
+    }
+
     public function testKeepsTheFirstOfTwoPermutationsWithEqualPaths(): void
     {
         // e1 and e2 cannot be told apart, so both orders give the same path
