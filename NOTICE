@@ -23,3 +23,14 @@ Web Consortium and are distributed under the W3C Test Suite License and the
 W3C 3-clause BSD License, as described at
 https://www.w3.org/copyright/test-suites-licenses/. They are not part of the
 socialweb/rdf library and are excluded from distribution archives.
+
+---
+
+The files under tests/fixtures/rdf-canon/ are the RDF Dataset Canonicalization
+test suite from the W3C rdf-canon repository, https://github.com/w3c/rdf-canon,
+taken from the directory tests/ at commit
+7064ab24f7c31182d3ace3bab5c169a319fe8c53. They are copyright the World Wide
+Web Consortium and are distributed under the W3C Test Suite License and the
+W3C 3-clause BSD License, as described at
+https://www.w3.org/copyright/test-suites-licenses/. They are not part of the
+socialweb/rdf library and are excluded from distribution archives.
