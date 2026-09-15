@@ -91,8 +91,6 @@ final class Canonicalizer
     /**
      * @throws IterationLimitExceeded if the dataset needs more calls to Hash
      *     N-Degree Quads than the deep iteration limit allows
-     * @throws InvalidArgument if a quad holds a term that is not one of this
-     *     library's own term classes
      */
     public function canonicalize(Dataset $dataset): CanonicalizationResult
     {
