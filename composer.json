@@ -1,12 +1,14 @@
 {
     "name": "socialweb/rdf",
-    "description": "",
+    "description": "An RDF 1.1 library with N-Quads and RDF Dataset Canonicalization (RDFC-1.0)",
     "license": "LGPL-3.0-or-later",
     "type": "library",
     "keywords": [
         "rdf",
-        "directed graph",
-        "metadata"
+        "n-quads",
+        "canonicalization",
+        "rdfc-1.0",
+        "linked data"
     ],
     "support": {
         "issues": "https://github.com/socialweb-php/rdf/issues",

@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Exceptions under `SocialWeb\Rdf\Exception`: the `RdfException` marker interface, `InvalidArgument`, `MalformedNQuads`, and `IterationLimitExceeded`.
 - Public interfaces `Term`, `Resource`, and `GraphName`, and the vocabulary constant classes `Vocabulary\Rdf` and `Vocabulary\Xsd`.
 - N-Quads 1.1 support under `SocialWeb\Rdf\NQuads`: `Parser` reads a document into quads or a `Dataset` and reports the first malformed line with its line and column, and `Serializer` writes quads in the canonical form of N-Quads defined by RDF Dataset Canonicalization (RDFC-1.0).
+- RDF Dataset Canonicalization (RDFC-1.0) under `SocialWeb\Rdf\Canonicalization`: `Canonicalizer` assigns canonical blank node identifiers to a `Dataset` and returns a `CanonicalizationResult` holding the canonicalized dataset, the canonical N-Quads document, and the map from input to canonical identifiers. The constructor takes the hash algorithm (SHA-256 by default, SHA-384 supported), a work factor that bounds deep iterations, and an optional explicit iteration limit; reaching the limit raises `IterationLimitExceeded`.
 
 ### Changed
 
