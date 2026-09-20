@@ -16,21 +16,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ---
 
 The files under tests/fixtures/n-quads/ are the RDF 1.1 N-Quads test suite
-from the W3C rdf-tests repository, <https://github.com/w3c/rdf-tests>, taken
-from the directory rdf/rdf11/rdf-n-quads/ at commit
-369a90d1a60c021b746df2e411da0ff36258a758. They are copyright the World Wide
-Web Consortium and are distributed under the W3C Test Suite License and the
-W3C 3-clause BSD License, as described at
-<https://www.w3.org/copyright/test-suites-licenses/>. They are not part of the
-socialweb/rdf library and are excluded from distribution archives.
+from the W3C rdf-tests repository, <https://github.com/w3c/rdf-tests>. They are
+copyright the World Wide Web Consortium and are distributed under the W3C Test
+Suite License and the W3C 3-clause BSD License, as described at
+<https://www.w3.org/copyright/test-suites-licenses/>.
 
 ---
 
 The files under tests/fixtures/rdf-canon/ are the RDF Dataset Canonicalization
 test suite from the W3C rdf-canon repository,
-<https://github.com/w3c/rdf-canon>, taken from the directory tests/ at commit
-7064ab24f7c31182d3ace3bab5c169a319fe8c53. They are copyright the World Wide
-Web Consortium and are distributed under the W3C Test Suite License and the
-W3C 3-clause BSD License, as described at
-<https://www.w3.org/copyright/test-suites-licenses/>. They are not part of the
-socialweb/rdf library and are excluded from distribution archives.
+<https://github.com/w3c/rdf-canon>. They are copyright the World Wide Web
+Consortium and are distributed under the W3C Test Suite License and the W3C
+3-clause BSD License, as described at
+<https://www.w3.org/copyright/test-suites-licenses/>.

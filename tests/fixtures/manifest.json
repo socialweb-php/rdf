@@ -1,0 +1,64 @@
+{
+    "fixtures": [
+        {
+            "name": "n-quads",
+            "directory": "n-quads",
+            "source": {
+                "title": "RDF 1.1 N-Quads test suite",
+                "url": "https://github.com/w3c/rdf-tests",
+                "copyright": "Copyright World Wide Web Consortium"
+            },
+            "license": {
+                "name": "W3C Test Suite License and W3C 3-clause BSD License",
+                "url": "https://www.w3.org/copyright/test-suites-licenses/",
+                "file": "n-quads/LICENSE.md"
+            },
+            "commit": "369a90d1a60c021b746df2e411da0ff36258a758",
+            "paths": [
+                {
+                    "from": "rdf/rdf11/rdf-n-quads/*.nq",
+                    "to": "*.nq"
+                },
+                {
+                    "from": "rdf/rdf11/rdf-n-quads/manifest.ttl",
+                    "to": "manifest.ttl"
+                },
+                {
+                    "from": "LICENSE.md",
+                    "to": "LICENSE.md"
+                }
+            ],
+            "sha256": "777741ae387de205b7fbe195ca45ba44bed988a5f40bd4619fa5129e98ae5878"
+        },
+        {
+            "name": "rdf-canon",
+            "directory": "rdf-canon",
+            "source": {
+                "title": "RDF Dataset Canonicalization test suite",
+                "url": "https://github.com/w3c/rdf-canon",
+                "copyright": "Copyright World Wide Web Consortium"
+            },
+            "license": {
+                "name": "W3C Test Suite License and W3C 3-clause BSD License",
+                "url": "https://www.w3.org/copyright/test-suites-licenses/",
+                "file": "rdf-canon/LICENCE.md"
+            },
+            "commit": "7064ab24f7c31182d3ace3bab5c169a319fe8c53",
+            "paths": [
+                {
+                    "from": "tests/rdfc10",
+                    "to": "rdfc10"
+                },
+                {
+                    "from": "tests/manifest.jsonld",
+                    "to": "manifest.jsonld"
+                },
+                {
+                    "from": "tests/LICENCE.md",
+                    "to": "LICENCE.md"
+                }
+            ],
+            "sha256": "09c46e30f6d08ab752096b3558fa7850f2f5a64d72e4f59a9f55edfd723fd209"
+        }
+    ]
+}
