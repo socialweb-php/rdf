@@ -90,7 +90,7 @@ When you do begin working on your feature, here are some guidelines to consider:
 
 ## Developing
 
-To develop this project, you will need [PHP](https://www.php.net) 7.4 or greater
+To develop this project, you will need [PHP](https://www.php.net) 8.5 or greater
 and [Composer](https://getcomposer.org).
 
 After cloning this repository locally, execute the following commands:
@@ -118,7 +118,7 @@ composer list dev
 ### Coding Standards
 
 This project follows a superset of [PSR-12](https://www.php-fig.org/psr/psr-12/)
-coding standards, enforced by [PHP_CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer).
+coding standards, enforced by [PHP_CodeSniffer](https://github.com/PHPCSStandards/PHP_CodeSniffer/).
 
 CaptainHook will run coding standards checks before committing.
 
