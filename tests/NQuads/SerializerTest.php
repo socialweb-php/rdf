@@ -221,7 +221,7 @@ class SerializerTest extends TestCase
         $quad = new Quad(new Iri('http://a/s'), new Iri('http://a/p'), $foreign);
 
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('Unsupported term type');
+        $this->expectExceptionMessageIsOrContains('Unsupported term type');
 
         (new Serializer())->serializeQuad($quad);
     }
@@ -237,7 +237,7 @@ class SerializerTest extends TestCase
         $quad = new Quad(new Iri('http://a/s'), new Iri('http://a/p'), new Iri('http://a/o'), $foreign);
 
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('Unsupported term type');
+        $this->expectExceptionMessageIsOrContains('Unsupported term type');
 
         (new Serializer())->serializeQuad($quad);
     }

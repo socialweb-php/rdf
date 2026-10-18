@@ -66,7 +66,7 @@ class LiteralTest extends TestCase
     public function testRejectsALanguageTagWithAnotherDatatype(): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('must have the datatype rdf:langString');
+        $this->expectExceptionMessageIsOrContains('must have the datatype rdf:langString');
 
         new Literal('hello', new Iri(Xsd::STRING), 'en');
     }
@@ -74,7 +74,7 @@ class LiteralTest extends TestCase
     public function testRejectsRdfLangStringWithoutALanguageTag(): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('must have a language tag');
+        $this->expectExceptionMessageIsOrContains('must have a language tag');
 
         new Literal('hello', new Iri(Rdf::LANG_STRING));
     }
@@ -83,7 +83,7 @@ class LiteralTest extends TestCase
     public function testRejectsMalformedLanguageTags(string $tag): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('is not a well-formed language tag');
+        $this->expectExceptionMessageIsOrContains('is not a well-formed language tag');
 
         new Literal('hello', language: $tag);
     }
@@ -102,7 +102,7 @@ class LiteralTest extends TestCase
     public function testRejectsALexicalFormThatIsNotUtf8(): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('must be valid UTF-8');
+        $this->expectExceptionMessageIsOrContains('must be valid UTF-8');
 
         new Literal("\xff");
     }

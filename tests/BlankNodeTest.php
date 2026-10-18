@@ -37,7 +37,7 @@ class BlankNodeTest extends TestCase
     public function testRejectsInvalidIdentifiers(string $identifier): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('is not a valid blank node identifier');
+        $this->expectExceptionMessageIsOrContains('is not a valid blank node identifier');
 
         new BlankNode($identifier);
     }

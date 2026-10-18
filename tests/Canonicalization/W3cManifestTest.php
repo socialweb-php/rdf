@@ -79,7 +79,7 @@ class W3cManifestTest extends TestCase
     public function testRejectsAnUnknownComplexity(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unknown computational complexity "extreme"');
+        $this->expectExceptionMessageIsOrContains('Unknown computational complexity "extreme"');
 
         W3cManifest::workFactor('extreme');
     }
@@ -87,7 +87,7 @@ class W3cManifestTest extends TestCase
     public function testReadFailsLoudlyForAMissingFixture(): void
     {
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Unable to read fixture');
+        $this->expectExceptionMessageIsOrContains('Unable to read fixture');
 
         W3cManifest::read(W3cManifest::FIXTURES . '/does-not-exist.nq');
     }

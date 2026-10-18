@@ -37,7 +37,7 @@ class IriTest extends TestCase
     public function testRejectsInvalidIris(string $value, string $expectedMessageFragment): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage($expectedMessageFragment);
+        $this->expectExceptionMessageIsOrContains($expectedMessageFragment);
 
         new Iri($value);
     }

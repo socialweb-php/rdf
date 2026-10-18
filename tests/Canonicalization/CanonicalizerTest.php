@@ -37,7 +37,7 @@ class CanonicalizerTest extends TestCase
     public function testRejectsAnUnknownHashAlgorithm(): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('"nope" is not a hash algorithm this PHP supports');
+        $this->expectExceptionMessageIsOrContains('"nope" is not a hash algorithm this PHP supports');
 
         new Canonicalizer('nope');
     }
@@ -45,7 +45,7 @@ class CanonicalizerTest extends TestCase
     public function testRejectsANegativeWorkFactor(): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('The work factor must not be negative; -1 given');
+        $this->expectExceptionMessageIsOrContains('The work factor must not be negative; -1 given');
 
         new Canonicalizer('sha256', -1);
     }
@@ -53,7 +53,7 @@ class CanonicalizerTest extends TestCase
     public function testRejectsANegativeDeepIterationLimit(): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('The deep iteration limit must not be negative; -5 given');
+        $this->expectExceptionMessageIsOrContains('The deep iteration limit must not be negative; -5 given');
 
         new Canonicalizer('sha256', 1, -5);
     }
@@ -145,7 +145,7 @@ class CanonicalizerTest extends TestCase
     public function testDefaultsToAWorkFactorOfOne(): void
     {
         $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessage('Canonicalization exceeded the deep iteration limit of 2');
+        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 2');
 
         (new Canonicalizer())->canonicalize((new Parser())->parse(self::CIRCLE));
     }
@@ -161,7 +161,7 @@ class CanonicalizerTest extends TestCase
         );
 
         $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessage('Canonicalization exceeded the deep iteration limit of 0');
+        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 0');
 
         $canonicalizer->canonicalize((new Parser())->parse(self::CIRCLE));
     }
@@ -181,7 +181,7 @@ class CanonicalizerTest extends TestCase
         $this->assertSame(self::CIRCLE_CANONICAL, $result->toNQuads());
 
         $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessage('Canonicalization exceeded the deep iteration limit of 3');
+        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 3');
 
         (new Canonicalizer('sha256', 3, 3))->canonicalize((new Parser())->parse(self::CIRCLE));
     }
@@ -189,7 +189,7 @@ class CanonicalizerTest extends TestCase
     public function testAcceptsAnExplicitLimitOfZero(): void
     {
         $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessage('Canonicalization exceeded the deep iteration limit of 0');
+        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 0');
 
         (new Canonicalizer('sha256', 1, 0))->canonicalize((new Parser())->parse(self::CIRCLE));
     }

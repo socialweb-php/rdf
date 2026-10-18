@@ -216,7 +216,7 @@ class HashNDegreeQuadsTest extends TestCase
         $state->remainingDeepIterations = 0;
 
         $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessage('Canonicalization exceeded the deep iteration limit of 7');
+        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 7');
 
         self::hasher($state)->hash('e0', new IdentifierIssuer('b'));
     }
@@ -228,7 +228,7 @@ class HashNDegreeQuadsTest extends TestCase
         $issuer->issue('e0');
 
         $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessage('Canonicalization exceeded the deep iteration limit of 1');
+        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 1');
 
         self::hasher($state)->hash('e0', $issuer);
     }

@@ -156,7 +156,7 @@ class DatasetTest extends TestCase
         };
 
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessage('Unsupported term type');
+        $this->expectExceptionMessageIsOrContains('Unsupported term type');
 
         (new Dataset())->add(new Quad($foreign, new Iri('a:p'), new Iri('a:o')));
     }
