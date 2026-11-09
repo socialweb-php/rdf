@@ -15,7 +15,7 @@ indent_size = 4
 [*.{yml,yaml}]
 indent_size = 2
 
-# Vendored test fixtures are kept byte-for-byte as published.
-[tests/fixtures/**]
+# The copied test suites are kept byte for byte as published.
+[resources/**]
 insert_final_newline = false
 trim_trailing_whitespace = false

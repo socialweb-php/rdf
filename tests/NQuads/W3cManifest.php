@@ -14,7 +14,7 @@ use const PREG_SET_ORDER;
 
 /**
  * Reads the W3C N-Quads syntax test manifest vendored under
- * tests/fixtures/n-quads
+ * resources/n-quads
  *
  * The manifest is Turtle, which this package cannot parse, but its layout is
  * regular: every entry starts with `<#name> a rdft:Type ;` and carries an
@@ -23,7 +23,7 @@ use const PREG_SET_ORDER;
  */
 final class W3cManifest
 {
-    public const string FIXTURES = __DIR__ . '/../fixtures/n-quads';
+    public const string FIXTURES = __DIR__ . '/../../resources/n-quads';
 
     public const string POSITIVE = 'TestNQuadsPositiveSyntax';
 

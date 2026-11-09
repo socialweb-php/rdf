@@ -1,4 +1,4 @@
-Copyright © socialweb/rdf Contributors
+Copyright © 2026 socialweb/rdf Contributors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
@@ -12,20 +12,3 @@ GNU Lesser General Public License for more details.
 
 You should have received a copy of the GNU Lesser General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
----
-
-The files under tests/fixtures/n-quads/ are the RDF 1.1 N-Quads test suite
-from the W3C rdf-tests repository, <https://github.com/w3c/rdf-tests>. They are
-copyright the World Wide Web Consortium and are distributed under the W3C Test
-Suite License and the W3C 3-clause BSD License, as described at
-<https://www.w3.org/copyright/test-suites-licenses/>.
-
----
-
-The files under tests/fixtures/rdf-canon/ are the RDF Dataset Canonicalization
-test suite from the W3C rdf-canon repository,
-<https://github.com/w3c/rdf-canon>. They are copyright the World Wide Web
-Consortium and are distributed under the W3C Test Suite License and the W3C
-3-clause BSD License, as described at
-<https://www.w3.org/copyright/test-suites-licenses/>.

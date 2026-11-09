@@ -18,14 +18,14 @@ use const JSON_THROW_ON_ERROR;
 
 /**
  * Reads the W3C RDF Dataset Canonicalization test manifest vendored under
- * tests/fixtures/rdf-canon
+ * resources/rdf-canon
  *
  * The manifest is JSON-LD, which this package cannot process, but its
  * structure is fixed, so it is read as plain JSON.
  */
 final class W3cManifest
 {
-    public const string FIXTURES = __DIR__ . '/../fixtures/rdf-canon';
+    public const string FIXTURES = __DIR__ . '/../../resources/rdf-canon';
 
     public const string EVAL = 'rdfc:RDFC10EvalTest';
 

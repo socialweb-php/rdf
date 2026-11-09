@@ -19,6 +19,6 @@
 /SECURITY.md                export-ignore
 /tests/                     export-ignore
 
-# Test fixtures are kept byte for byte as published, so git must not convert
-# their line endings.
-/tests/fixtures/**          -text
+# The copied test suites are kept byte for byte as published, so git must not
+# convert their line endings.
+/resources/**               -text
