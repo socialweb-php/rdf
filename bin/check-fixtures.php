@@ -45,60 +45,37 @@ $fail = static function (string $message): never {
 };
 
 /**
- * Returns every file under a path, as paths from the base directory with "./"
- * in front
+ * Returns every file under a directory, as paths from it with "./" in front,
+ * sorted byte by byte
  *
  * @return list<string>
  */
-$filesUnder = static function (string $base, string $path) use ($fail): array {
+$filesUnder = static function (string $directory) use ($fail): array {
     $files = [];
-    $pending = [$path];
+    $pending = [''];
 
     while ($pending !== []) {
         $current = array_pop($pending);
-        $full = $base . '/' . $current;
-
-        if (is_file($full)) {
-            $files[] = './' . $current;
-
-            continue;
-        }
-
-        $entries = scandir($full);
+        $entries = scandir($directory . $current);
 
         if ($entries === false) {
-            $fail(sprintf('Cannot read the directory %s', $full));
+            $fail(sprintf('Cannot read the directory %s', $directory . $current));
         }
 
         foreach ($entries as $entry) {
-            if ($entry !== '.' && $entry !== '..') {
+            if ($entry === '.' || $entry === '..') {
+                continue;
+            }
+
+            if (is_dir($directory . $current . '/' . $entry)) {
                 $pending[] = $current . '/' . $entry;
+            } else {
+                $files[] = '.' . $current . '/' . $entry;
             }
         }
     }
 
-    return $files;
-};
-
-/**
- * Returns every file in a directory, as paths from it with "./" in front
- *
- * @return list<string>
- */
-$filesIn = static function (string $directory) use ($fail, $filesUnder): array {
-    $entries = scandir($directory);
-
-    if ($entries === false) {
-        $fail(sprintf('Cannot read the directory %s', $directory));
-    }
-
-    $files = [];
-
-    foreach ($entries as $entry) {
-        if ($entry !== '.' && $entry !== '..') {
-            $files = [...$files, ...$filesUnder($directory, $entry)];
-        }
-    }
+    sort($files, SORT_STRING);
 
     return $files;
 };
@@ -111,26 +88,36 @@ if ($json === false) {
     $fail(sprintf('Cannot read %s', $manifestFile));
 }
 
-/**
- * @var array{sets: list<array{name: string, sha256: string}>} $manifest
- */
+/** @var mixed $manifest */
 $manifest = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+if (!is_array($manifest) || !isset($manifest['sets']) || !is_array($manifest['sets'])) {
+    $fail(sprintf('%s: the "sets" member is missing or is not a list', $manifestFile));
+}
+
+if (!array_is_list($manifest['sets'])) {
+    $fail(sprintf('%s: the "sets" member is not a list', $manifestFile));
+}
+
+if ($manifest['sets'] === []) {
+    $fail(sprintf('%s: the "sets" list is empty, so there is nothing to check', $manifestFile));
+}
+
 $failed = false;
 
+/** @var array{name: string, sha256: string} $set */
 foreach ($manifest['sets'] as $set) {
     $base = $resourcesDirectory . '/' . $set['name'];
 
     if (!is_dir($base)) {
-        $fail(sprintf('%s: the set is in the manifest and not in %s', $set['name'], $resourcesDirectory));
+        $fail(sprintf('%s: there is no directory %s in %s', $set['name'], $set['name'], $resourcesDirectory));
     }
 
-    $files = $filesIn($base);
-    sort($files, SORT_STRING);
-
+    $files = $filesUnder($base);
     $lines = '';
 
     foreach ($files as $file) {
-        $lines .= hash_file('sha256', $base . '/' . substr($file, 2)) . '  ' . $file . "\n";
+        $lines .= hash_file('sha256', $base . substr($file, 1)) . '  ' . $file . "\n";
     }
 
     $checksum = hash('sha256', $lines);
@@ -142,6 +129,7 @@ foreach ($manifest['sets'] as $set) {
     }
 
     $failed = true;
+
     printf(
         "%s: the checksum does not match\n  expected %s\n  computed %s\n",
         $set['name'],
