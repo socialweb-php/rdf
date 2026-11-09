@@ -26,7 +26,7 @@ declare(strict_types=1);
 namespace SocialWeb\Rdf\Canonicalization;
 
 use SocialWeb\Rdf\BlankNode;
-use SocialWeb\Rdf\Exception\IterationLimitExceeded;
+use SocialWeb\Rdf\Exception\LimitExceeded;
 
 use function count;
 use function ksort;
@@ -39,8 +39,8 @@ use const SORT_STRING;
  * The Hash N-Degree Quads algorithm of RDFC-1.0 section 4.8
  *
  * Every call counts against the deep iteration budget in the state; when the
- * budget is spent the call raises {@see IterationLimitExceeded}, which is the
- * early termination RDFC-1.0 section 7.1 requires.
+ * budget is spent the call raises {@see LimitExceeded}, which is the early
+ * termination RDFC-1.0 section 7.1 requires.
  *
  * @internal
  */
@@ -56,12 +56,13 @@ final class HashNDegreeQuads
      * @param string $identifier The blank node whose N-degree hash is wanted
      * @param IdentifierIssuer $issuer The path identifier issuer
      *
-     * @throws IterationLimitExceeded
+     * @throws LimitExceeded if the deep iteration budget is spent before
+     *     this call
      */
     public function hash(string $identifier, IdentifierIssuer $issuer): NDegreeHash
     {
         if ($this->state->remainingDeepIterations === 0) {
-            throw new IterationLimitExceeded($this->state->deepIterationLimit);
+            throw new LimitExceeded('maxDeepIterations', $this->state->deepIterationLimit);
         }
 
         $this->state->remainingDeepIterations--;

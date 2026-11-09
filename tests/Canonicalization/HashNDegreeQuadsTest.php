@@ -10,7 +10,7 @@ use SocialWeb\Rdf\Canonicalization\HashFirstDegreeQuads;
 use SocialWeb\Rdf\Canonicalization\HashNDegreeQuads;
 use SocialWeb\Rdf\Canonicalization\HashRelatedBlankNode;
 use SocialWeb\Rdf\Canonicalization\IdentifierIssuer;
-use SocialWeb\Rdf\Exception\IterationLimitExceeded;
+use SocialWeb\Rdf\Exception\LimitExceeded;
 use SocialWeb\Test\Rdf\TestCase;
 
 use function str_split;
@@ -215,8 +215,8 @@ final class HashNDegreeQuadsTest extends TestCase
         $state->deepIterationLimit = 7;
         $state->remainingDeepIterations = 0;
 
-        $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 7');
+        $this->expectException(LimitExceeded::class);
+        $this->expectExceptionMessageIsOrContains('The maxDeepIterations limit of 7 was exceeded');
 
         self::hasher($state)->hash('e0', new IdentifierIssuer('b'));
     }
@@ -227,8 +227,8 @@ final class HashNDegreeQuadsTest extends TestCase
         $issuer = new IdentifierIssuer('b');
         $issuer->issue('e0');
 
-        $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 1');
+        $this->expectException(LimitExceeded::class);
+        $this->expectExceptionMessageIsOrContains('The maxDeepIterations limit of 1 was exceeded');
 
         self::hasher($state)->hash('e0', $issuer);
     }

@@ -7,7 +7,7 @@ namespace SocialWeb\Test\Rdf\Canonicalization;
 use PHPUnit\Framework\Attributes\DataProvider;
 use SocialWeb\Rdf\Canonicalization\Canonicalizer;
 use SocialWeb\Rdf\Dataset;
-use SocialWeb\Rdf\Exception\IterationLimitExceeded;
+use SocialWeb\Rdf\Exception\LimitExceeded;
 use SocialWeb\Test\Rdf\TestCase;
 
 use function json_decode;
@@ -83,7 +83,7 @@ final class W3cCanonicalizationTest extends TestCase
         $this->assertNull($result);
         $dataset = Dataset::fromNQuads(W3cManifest::read($action));
 
-        $this->expectException(IterationLimitExceeded::class);
+        $this->expectException(LimitExceeded::class);
 
         (new Canonicalizer($hashAlgorithm, $workFactor))->canonicalize($dataset);
     }
@@ -105,7 +105,7 @@ final class W3cCanonicalizationTest extends TestCase
     ): void {
         $dataset = Dataset::fromNQuads(W3cManifest::read($action));
 
-        $this->expectException(IterationLimitExceeded::class);
+        $this->expectException(LimitExceeded::class);
 
         (new Canonicalizer())->canonicalize($dataset);
     }

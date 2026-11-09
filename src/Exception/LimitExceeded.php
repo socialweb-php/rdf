@@ -31,18 +31,25 @@ use Throwable;
 use function sprintf;
 
 /**
- * Thrown when canonicalization reaches its deep iteration limit
+ * Thrown when canonicalization reaches a limit the caller set
  *
- * RDF Dataset Canonicalization requires implementations to terminate early on
- * inputs that would otherwise take unbounded time. See RDFC-1.0 section 7.1.
+ * RDF Dataset Canonicalization requires implementations to stop early on
+ * inputs that would otherwise take unbounded time; see RDFC-1.0 section 7.1.
+ * The limit is the bound in force, whether the caller gave it or the
+ * canonicalizer derived it from the work factor.
  */
-final class IterationLimitExceeded extends RuntimeException implements RdfException
+final class LimitExceeded extends RuntimeException implements RdfException
 {
     /**
-     * @param int $limit The limit that was reached
+     * @param string $parameter The name of the constructor parameter whose
+     *     limit was exceeded
+     * @param int $limit The limit that was in force
      */
-    public function __construct(public readonly int $limit, ?Throwable $previous = null)
-    {
-        parent::__construct(sprintf('Canonicalization exceeded the deep iteration limit of %d', $limit), 0, $previous);
+    public function __construct(
+        public readonly string $parameter,
+        public readonly int $limit,
+        ?Throwable $previous = null,
+    ) {
+        parent::__construct(sprintf('The %s limit of %d was exceeded', $parameter, $limit), 0, $previous);
     }
 }

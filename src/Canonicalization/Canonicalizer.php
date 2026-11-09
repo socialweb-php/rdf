@@ -28,7 +28,7 @@ namespace SocialWeb\Rdf\Canonicalization;
 use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\InvalidArgument;
-use SocialWeb\Rdf\Exception\IterationLimitExceeded;
+use SocialWeb\Rdf\Exception\LimitExceeded;
 use SocialWeb\Rdf\Quad;
 
 use function array_keys;
@@ -62,11 +62,12 @@ final class Canonicalizer
      *     blank nodes with non-unique first degree hashes raised to this
      *     power: 0 disables deep iterations, 1 allows one call to Hash
      *     N-Degree Quads per such node, 2 allows the square of that count
-     * @param int | null $maxDeepIterations An explicit deep iteration limit
-     *     that overrides the work factor
+     * @param int | null $maxDeepIterations An explicit deep iteration limit,
+     *     at least 1, that overrides the work factor; null derives the limit
+     *     from the work factor
      *
-     * @throws InvalidArgument if the hash algorithm is unknown, the work
-     *     factor is negative, or the explicit limit is negative
+     * @throws InvalidArgument if the work factor is negative or the explicit
+     *     limit is below 1
      */
     public function __construct(
         private readonly string $hashAlgorithm = 'sha256',
@@ -78,20 +79,17 @@ final class Canonicalizer
         }
 
         if ($workFactor < 0) {
-            throw new InvalidArgument(sprintf('The work factor must not be negative; %d given', $workFactor));
+            throw new InvalidArgument(sprintf('workFactor must not be negative; %d given', $workFactor));
         }
 
-        if ($maxDeepIterations !== null && $maxDeepIterations < 0) {
-            throw new InvalidArgument(sprintf(
-                'The deep iteration limit must not be negative; %d given',
-                $maxDeepIterations,
-            ));
+        if ($maxDeepIterations !== null && $maxDeepIterations < 1) {
+            throw new InvalidArgument(sprintf('maxDeepIterations must be at least 1; %d given', $maxDeepIterations));
         }
     }
 
     /**
-     * @throws IterationLimitExceeded if the dataset needs more calls to Hash
-     *     N-Degree Quads than the deep iteration limit allows
+     * @throws LimitExceeded if the dataset needs more calls to Hash N-Degree
+     *     Quads than the deep iteration limit allows
      */
     public function canonicalize(Dataset $dataset): CanonicalizationResult
     {

@@ -7,7 +7,7 @@ namespace SocialWeb\Test\Rdf\Canonicalization;
 use SocialWeb\Rdf\Canonicalization\Canonicalizer;
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\InvalidArgument;
-use SocialWeb\Rdf\Exception\IterationLimitExceeded;
+use SocialWeb\Rdf\Exception\LimitExceeded;
 use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Literal;
 use SocialWeb\Rdf\Quad;
@@ -45,15 +45,23 @@ final class CanonicalizerTest extends TestCase
     public function testRejectsANegativeWorkFactor(): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessageIsOrContains('The work factor must not be negative; -1 given');
+        $this->expectExceptionMessageIsOrContains('workFactor must not be negative; -1 given');
 
         new Canonicalizer('sha256', -1);
+    }
+
+    public function testRejectsADeepIterationLimitBelowOne(): void
+    {
+        $this->expectException(InvalidArgument::class);
+        $this->expectExceptionMessageIsOrContains('maxDeepIterations must be at least 1; 0 given');
+
+        new Canonicalizer('sha256', 1, 0);
     }
 
     public function testRejectsANegativeDeepIterationLimit(): void
     {
         $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessageIsOrContains('The deep iteration limit must not be negative; -5 given');
+        $this->expectExceptionMessageIsOrContains('maxDeepIterations must be at least 1; -5 given');
 
         new Canonicalizer('sha256', 1, -5);
     }
@@ -144,8 +152,8 @@ final class CanonicalizerTest extends TestCase
 
     public function testDefaultsToAWorkFactorOfOne(): void
     {
-        $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 2');
+        $this->expectException(LimitExceeded::class);
+        $this->expectExceptionMessageIsOrContains('The maxDeepIterations limit of 2 was exceeded');
 
         (new Canonicalizer())->canonicalize(Dataset::fromNQuads(self::CIRCLE));
     }
@@ -160,8 +168,8 @@ final class CanonicalizerTest extends TestCase
             $canonicalizer->canonicalize($tree)->toNQuads(),
         );
 
-        $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 0');
+        $this->expectException(LimitExceeded::class);
+        $this->expectExceptionMessageIsOrContains('The maxDeepIterations limit of 0 was exceeded');
 
         $canonicalizer->canonicalize(Dataset::fromNQuads(self::CIRCLE));
     }
@@ -180,18 +188,18 @@ final class CanonicalizerTest extends TestCase
 
         $this->assertSame(self::CIRCLE_CANONICAL, $result->toNQuads());
 
-        $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 3');
+        $this->expectException(LimitExceeded::class);
+        $this->expectExceptionMessageIsOrContains('The maxDeepIterations limit of 3 was exceeded');
 
         (new Canonicalizer('sha256', 3, 3))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
     }
 
-    public function testAcceptsAnExplicitLimitOfZero(): void
+    public function testAcceptsAnExplicitLimitOfOne(): void
     {
-        $this->expectException(IterationLimitExceeded::class);
-        $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 0');
+        $this->expectException(LimitExceeded::class);
+        $this->expectExceptionMessageIsOrContains('The maxDeepIterations limit of 1 was exceeded');
 
-        (new Canonicalizer('sha256', 1, 0))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
+        (new Canonicalizer('sha256', 1, 1))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
     }
 
     public function testSkipsGroupMembersThatAlreadyHaveACanonicalIdentifier(): void
