@@ -26,11 +26,13 @@ declare(strict_types=1);
 namespace SocialWeb\Rdf\Canonicalization;
 
 use SocialWeb\Rdf\BlankNode;
+use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\LimitExceeded;
 
 use function count;
 use function ksort;
 use function sort;
+use function sprintf;
 use function strcmp;
 
 use const SORT_STRING;
@@ -56,11 +58,17 @@ final class HashNDegreeQuads
      * @param string $identifier The blank node whose N-degree hash is wanted
      * @param IdentifierIssuer $issuer The path identifier issuer
      *
+     * @throws InvalidArgument if the state has no blank node with the
+     *     identifier
      * @throws LimitExceeded if the deep iteration budget is spent before
      *     this call
      */
     public function hash(string $identifier, IdentifierIssuer $issuer): NDegreeHash
     {
+        if (!isset($this->state->blankNodeToQuads[$identifier])) {
+            throw new InvalidArgument(sprintf('The dataset has no blank node "%s"', $identifier));
+        }
+
         if ($this->state->remainingDeepIterations === 0) {
             throw new LimitExceeded('maxDeepIterations', $this->state->deepIterationLimit);
         }

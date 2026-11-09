@@ -26,10 +26,12 @@ declare(strict_types=1);
 namespace SocialWeb\Rdf\Canonicalization;
 
 use SocialWeb\Rdf\BlankNode;
+use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Quad;
 
 use function implode;
 use function sort;
+use function sprintf;
 
 use const SORT_STRING;
 
@@ -56,11 +58,18 @@ final class HashFirstDegreeQuads
      *
      * The result is cached in the state, because it depends only on the
      * input dataset and never changes.
+     *
+     * @throws InvalidArgument if the state has no blank node with the
+     *     identifier
      */
     public function hash(string $identifier): string
     {
         if (isset($this->state->firstDegreeHashes[$identifier])) {
             return $this->state->firstDegreeHashes[$identifier];
+        }
+
+        if (!isset($this->state->blankNodeToQuads[$identifier])) {
+            throw new InvalidArgument(sprintf('The dataset has no blank node "%s"', $identifier));
         }
 
         $nquads = [];

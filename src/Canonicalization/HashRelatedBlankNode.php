@@ -25,7 +25,11 @@ declare(strict_types=1);
 
 namespace SocialWeb\Rdf\Canonicalization;
 
+use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Quad;
+
+use function in_array;
+use function sprintf;
 
 /**
  * The Hash Related Blank Node algorithm of RDFC-1.0 section 4.7
@@ -49,9 +53,15 @@ final class HashRelatedBlankNode
      * @param IdentifierIssuer $issuer The temporary issuer for the current path
      * @param 's' | 'o' | 'g' $position Whether the related node is the quad's
      *     subject, object, or graph name
+     *
+     * @throws InvalidArgument if the position is not one of the three
      */
     public function hash(string $related, Quad $quad, IdentifierIssuer $issuer, string $position): string
     {
+        if (!in_array($position, ['s', 'o', 'g'], true)) {
+            throw new InvalidArgument(sprintf('The position must be "s", "o", or "g"; "%s" given', $position));
+        }
+
         $input = $position;
 
         if ($position !== 'g') {

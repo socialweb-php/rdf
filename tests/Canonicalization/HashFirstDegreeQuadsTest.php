@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SocialWeb\Test\Rdf\Canonicalization;
 
 use SocialWeb\Rdf\Canonicalization\HashFirstDegreeQuads;
+use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Test\Rdf\TestCase;
 
 final class HashFirstDegreeQuadsTest extends TestCase
@@ -67,5 +68,15 @@ final class HashFirstDegreeQuadsTest extends TestCase
         $state->blankNodeToQuads['e0'] = [];
 
         $this->assertSame($hash, $hasher->hash('e0'));
+    }
+
+    public function testRejectsAnIdentifierTheDatasetDoesNotHave(): void
+    {
+        $state = StateBuilder::fromNQuads(self::UNIQUE_HASHES_EXAMPLE);
+
+        $this->expectException(InvalidArgument::class);
+        $this->expectExceptionMessageIsOrContains('The dataset has no blank node "e9"');
+
+        (new HashFirstDegreeQuads($state))->hash('e9');
     }
 }

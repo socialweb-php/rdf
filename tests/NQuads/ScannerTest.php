@@ -233,4 +233,31 @@ final class ScannerTest extends TestCase
 
         $this->assertSame(1, $scanner->error(MalformedNQuadsReason::InvalidSubject, 'bad')->columnNumber);
     }
+
+    public function testErrorAcceptsAnOffsetAtTheEndOfTheLine(): void
+    {
+        $scanner = new Scanner('<a:b>', 1);
+
+        $this->assertSame(6, $scanner->error(MalformedNQuadsReason::InvalidPredicate, 'bad', 5)->columnNumber);
+    }
+
+    public function testErrorRejectsAnOffsetPastTheEndOfTheLine(): void
+    {
+        $scanner = new Scanner('<a:b>', 1);
+
+        $this->expectException(InvalidArgument::class);
+        $this->expectExceptionMessageIsOrContains('The offset must be between 0 and 5; 6 given');
+
+        $scanner->error(MalformedNQuadsReason::InvalidPredicate, 'bad', 6);
+    }
+
+    public function testErrorRejectsANegativeOffset(): void
+    {
+        $scanner = new Scanner('<a:b>', 1);
+
+        $this->expectException(InvalidArgument::class);
+        $this->expectExceptionMessageIsOrContains('The offset must be between 0 and 5; -1 given');
+
+        $scanner->error(MalformedNQuadsReason::InvalidPredicate, 'bad', -1);
+    }
 }

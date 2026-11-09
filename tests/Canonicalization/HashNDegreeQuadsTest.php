@@ -10,6 +10,7 @@ use SocialWeb\Rdf\Canonicalization\HashFirstDegreeQuads;
 use SocialWeb\Rdf\Canonicalization\HashNDegreeQuads;
 use SocialWeb\Rdf\Canonicalization\HashRelatedBlankNode;
 use SocialWeb\Rdf\Canonicalization\IdentifierIssuer;
+use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\LimitExceeded;
 use SocialWeb\Test\Rdf\TestCase;
 
@@ -231,6 +232,25 @@ final class HashNDegreeQuadsTest extends TestCase
         $this->expectExceptionMessageIsOrContains('The maxDeepIterations limit of 1 was exceeded');
 
         self::hasher($state)->hash('e0', $issuer);
+    }
+
+    public function testRejectsAnIdentifierTheDatasetDoesNotHave(): void
+    {
+        $state = StateBuilder::fromNQuads(self::DOUBLE_CIRCLE);
+
+        $this->expectException(InvalidArgument::class);
+        $this->expectExceptionMessageIsOrContains('The dataset has no blank node "e9"');
+
+        self::hasher($state)->hash('e9', new IdentifierIssuer('b'));
+    }
+
+    public function testRejectsAnUnknownIdentifierBeforeSpendingTheBudget(): void
+    {
+        $state = StateBuilder::fromNQuads(self::DOUBLE_CIRCLE, deepIterations: 0);
+
+        $this->expectException(InvalidArgument::class);
+
+        self::hasher($state)->hash('e9', new IdentifierIssuer('b'));
     }
 
     private static function hasher(CanonicalizationState $state): HashNDegreeQuads

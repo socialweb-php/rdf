@@ -25,12 +25,14 @@ declare(strict_types=1);
 
 namespace SocialWeb\Rdf\NQuads;
 
+use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\MalformedNQuads;
 use SocialWeb\Rdf\Exception\MalformedNQuadsReason;
 use Throwable;
 
 use function ord;
 use function preg_match;
+use function sprintf;
 use function strcspn;
 use function strlen;
 use function strspn;
@@ -232,6 +234,9 @@ final class Scanner
      * @param string $detail What was wrong, in words, starting in lowercase
      * @param int | null $offset The byte offset of the problem, which the
      *     exception reports as a one-based column in code points
+     *
+     * @throws InvalidArgument if the offset is negative or past the end of
+     *     the line
      */
     public function error(
         MalformedNQuadsReason $reason,
@@ -240,6 +245,12 @@ final class Scanner
         ?Throwable $previous = null,
     ): MalformedNQuads {
         $offset ??= $this->offset;
+        $length = strlen($this->line);
+
+        if ($offset < 0 || $offset > $length) {
+            throw new InvalidArgument(sprintf('The offset must be between 0 and %d; %d given', $length, $offset));
+        }
+
         $column = 1;
 
         for ($i = 0; $i < $offset; $i++) {

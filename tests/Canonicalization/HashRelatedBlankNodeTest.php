@@ -8,6 +8,7 @@ use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Canonicalization\HashFirstDegreeQuads;
 use SocialWeb\Rdf\Canonicalization\HashRelatedBlankNode;
 use SocialWeb\Rdf\Canonicalization\IdentifierIssuer;
+use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\HashAlgorithm;
 use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Quad;
@@ -120,5 +121,17 @@ final class HashRelatedBlankNodeTest extends TestCase
             hash('sha384', 'o<http://example.com/#p>_:c14n0'),
             $hasher->hash('e2', $quad, new IdentifierIssuer('b'), 'o'),
         );
+    }
+
+    public function testRejectsAPositionOtherThanSubjectObjectOrGraph(): void
+    {
+        $state = StateBuilder::fromNQuads("_:e0 <http://example.com/#p> _:e2 .\n");
+        $hasher = new HashRelatedBlankNode($state, new HashFirstDegreeQuads($state));
+
+        $this->expectException(InvalidArgument::class);
+        $this->expectExceptionMessageIsOrContains('The position must be "s", "o", or "g"; "p" given');
+
+        // @phpstan-ignore argument.type (the docblock type forbids the position; the test proves the method refuses it)
+        $hasher->hash('e2', $state->blankNodeToQuads['e0'][0], new IdentifierIssuer('b'), 'p');
     }
 }
