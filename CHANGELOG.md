@@ -39,4 +39,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) 
 - RDF Dataset Canonicalization (RDFC-1.0) under `SocialWeb\Rdf\Canonicalization`: `Canonicalizer` assigns canonical blank node identifiers to a `Dataset` and returns a `CanonicalizationResult` holding the canonicalized dataset, the canonical N-Quads document, and the map from input to canonical identifiers. The constructor takes the hash algorithm (SHA-256 by default, SHA-384 supported), a work factor that bounds deep iterations, and an optional explicit iteration limit; reaching the limit raises `IterationLimitExceeded`.
 
 [unreleased]: https://github.com/socialweb-php/rdf/compare/0.1.0...HEAD
-[0.1.0]: https://github.com/socialweb-php/rdf/compare/0.0.0...0.1.0
+[0.1.0]: https://github.com/socialweb-php/rdf/commits/0.1.0/

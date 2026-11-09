@@ -138,6 +138,26 @@ The W3C test suites under `resources/` are copied byte for byte from their sourc
 composer check-fixtures
 ```
 
+## Releasing
+
+The changelog follows [Keep a Changelog]. As changes land, they go under the `## [Unreleased]` heading at the top of `CHANGELOG.md`. Before tagging a release, rename that heading to `## [X.Y.Z] - YYYY-MM-DD` and give it a link reference at the end of the file. The first release has no earlier tag to compare with, so it links to the commits up to its tag:
+
+```markdown
+[1.0.0]: https://github.com/socialweb-php/rdf/commits/1.0.0/
+```
+
+Every later release links to the comparison with the previous tag:
+
+```markdown
+[1.1.0]: https://github.com/socialweb-php/rdf/compare/1.0.0...1.1.0
+```
+
+After tagging, add a new, empty `## [Unreleased]` heading at the top and point its reference at the commits since the release:
+
+```markdown
+[unreleased]: https://github.com/socialweb-php/rdf/compare/1.1.0...HEAD
+```
+
 [captainhook]: https://github.com/CaptainHookPhp/captainhook
 [code of conduct]: CODE_OF_CONDUCT.md
 [composer]: https://getcomposer.org
@@ -146,6 +166,7 @@ composer check-fixtures
 [github]: https://github.com/socialweb-php/rdf
 [infection]: https://infection.github.io
 [issues]: https://github.com/socialweb-php/rdf/issues
+[keep a changelog]: https://keepachangelog.com/en/1.1.0/
 [per-cs]: https://www.php-fig.org/per/coding-style/
 [php]: https://www.php.net
 [php_codesniffer]: https://github.com/PHPCSStandards/PHP_CodeSniffer
