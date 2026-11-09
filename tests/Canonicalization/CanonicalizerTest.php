@@ -70,10 +70,10 @@ final class CanonicalizerTest extends TestCase
             "<http://a/s> <http://a/p> \"a\" .\n<http://a/s> <http://a/p> \"b\" .\n",
             $result->toNQuads(),
         );
-        $this->assertSame([], $result->issuedIdentifiers());
-        $this->assertCount(2, $result->dataset());
-        $this->assertTrue(iterator_to_array($result->dataset())[0]->equals($first));
-        $this->assertTrue(iterator_to_array($result->dataset())[1]->equals($second));
+        $this->assertSame([], $result->issuedIdentifiers);
+        $this->assertCount(2, $result->dataset);
+        $this->assertTrue(iterator_to_array($result->dataset)[0]->equals($first));
+        $this->assertTrue(iterator_to_array($result->dataset)[1]->equals($second));
     }
 
     public function testIssuesCanonicalIdentifiersInFirstDegreeHashOrder(): void
@@ -83,10 +83,10 @@ final class CanonicalizerTest extends TestCase
         $result = (new Canonicalizer())->canonicalize($dataset);
 
         $this->assertSame("_:c14n0 <http://a/p> _:c14n1 .\n_:c14n1 <http://a/p> <http://a/o> .\n", $result->toNQuads());
-        $this->assertSame(['a' => 'c14n0', 'b' => 'c14n1'], $result->issuedIdentifiers());
+        $this->assertSame(['a' => 'c14n0', 'b' => 'c14n1'], $result->issuedIdentifiers);
         $this->assertSame(
             "_:c14n1 <http://a/p> <http://a/o> .\n_:c14n0 <http://a/p> _:c14n1 .\n",
-            $result->dataset()->toNQuads(),
+            $result->dataset->toNQuads(),
         );
     }
 
@@ -120,7 +120,7 @@ final class CanonicalizerTest extends TestCase
         $result = (new Canonicalizer())->canonicalize($dataset);
 
         $this->assertSame("_:c14n0 <http://a/p> _:c14n1 .\n_:c14n1 <http://a/p> <http://a/o> .\n", $result->toNQuads());
-        $this->assertSame([0 => 'c14n0', 1 => 'c14n1'], $result->issuedIdentifiers());
+        $this->assertSame([0 => 'c14n0', 1 => 'c14n1'], $result->issuedIdentifiers);
     }
 
     public function testResolvesSharedHashesWithNDegreeHashing(): void
@@ -172,7 +172,7 @@ final class CanonicalizerTest extends TestCase
         $result = (new Canonicalizer(HashAlgorithm::Sha256, 2))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
 
         $this->assertSame(self::CIRCLE_CANONICAL, $result->toNQuads());
-        $this->assertSame(['a' => 'c14n0', 'b' => 'c14n1'], $result->issuedIdentifiers());
+        $this->assertSame(['a' => 'c14n0', 'b' => 'c14n1'], $result->issuedIdentifiers);
     }
 
     public function testAnExplicitLimitOverridesTheWorkFactor(): void
@@ -239,7 +239,7 @@ final class CanonicalizerTest extends TestCase
                 'z2' => 'c14n9',
                 'z1' => 'c14n10',
             ],
-            $result->issuedIdentifiers(),
+            $result->issuedIdentifiers,
         );
     }
 
@@ -265,7 +265,7 @@ final class CanonicalizerTest extends TestCase
             . "_:c14n2 <http://example.org/vocab#next> _:c14n1 .\n",
             $sha256->toNQuads(),
         );
-        $this->assertSame(['e1' => 'c14n0', 'e2' => 'c14n1', 'e0' => 'c14n2'], $sha256->issuedIdentifiers());
+        $this->assertSame(['e1' => 'c14n0', 'e2' => 'c14n1', 'e0' => 'c14n2'], $sha256->issuedIdentifiers);
         $this->assertSame(
             "<http://example.org/vocab#test> <http://example.org/vocab#A> _:c14n0 .\n"
             . "<http://example.org/vocab#test> <http://example.org/vocab#B> _:c14n2 .\n"
@@ -273,7 +273,7 @@ final class CanonicalizerTest extends TestCase
             . "_:c14n2 <http://example.org/vocab#next> _:c14n1 .\n",
             $sha384->toNQuads(),
         );
-        $this->assertSame(['e0' => 'c14n0', 'e2' => 'c14n1', 'e1' => 'c14n2'], $sha384->issuedIdentifiers());
+        $this->assertSame(['e0' => 'c14n0', 'e2' => 'c14n1', 'e1' => 'c14n2'], $sha384->issuedIdentifiers);
     }
 
     public function testCanBeReused(): void
@@ -285,6 +285,6 @@ final class CanonicalizerTest extends TestCase
         $second = $canonicalizer->canonicalize($dataset);
 
         $this->assertSame($first->toNQuads(), $second->toNQuads());
-        $this->assertSame($first->issuedIdentifiers(), $second->issuedIdentifiers());
+        $this->assertSame($first->issuedIdentifiers, $second->issuedIdentifiers);
     }
 }

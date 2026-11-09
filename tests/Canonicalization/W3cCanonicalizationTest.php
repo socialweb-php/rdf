@@ -59,7 +59,7 @@ final class W3cCanonicalizationTest extends TestCase
         $this->assertIsArray($expected);
         $dataset = Dataset::fromNQuads(W3cManifest::read($action));
 
-        $actual = (new Canonicalizer($hashAlgorithm, $workFactor))->canonicalize($dataset)->issuedIdentifiers();
+        $actual = (new Canonicalizer($hashAlgorithm, $workFactor))->canonicalize($dataset)->issuedIdentifiers;
 
         ksort($expected, SORT_STRING);
         ksort($actual, SORT_STRING);

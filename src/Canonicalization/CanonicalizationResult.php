@@ -39,20 +39,15 @@ use const SORT_STRING;
 final readonly class CanonicalizationResult
 {
     /**
-     * @param Dataset $dataset The canonicalized dataset
+     * @param Dataset $dataset The canonicalized dataset, whose blank nodes
+     *     have their canonical identifiers
      * @param array<string, string> $issuedIdentifiers Each input blank node
-     *     identifier to its canonical identifier
+     *     identifier to its canonical identifier. PHP stores an array key
+     *     such as "0" as the integer 0, so cast the keys to strings if they
+     *     are to be used as identifiers.
      */
-    public function __construct(private Dataset $dataset, private array $issuedIdentifiers)
+    public function __construct(public Dataset $dataset, public array $issuedIdentifiers)
     {
-    }
-
-    /**
-     * Returns a dataset whose blank nodes carry their canonical identifiers
-     */
-    public function dataset(): Dataset
-    {
-        return $this->dataset;
     }
 
     /**
@@ -72,18 +67,5 @@ final readonly class CanonicalizationResult
         sort($lines, SORT_STRING);
 
         return implode('', $lines);
-    }
-
-    /**
-     * Returns each input blank node identifier and its canonical identifier
-     *
-     * PHP stores an array key such as "0" as the integer 0, so cast the keys
-     * to strings if they are to be used as identifiers.
-     *
-     * @return array<string, string>
-     */
-    public function issuedIdentifiers(): array
-    {
-        return $this->issuedIdentifiers;
     }
 }

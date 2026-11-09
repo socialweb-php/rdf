@@ -19,8 +19,8 @@ final class CanonicalizationResultTest extends TestCase
         $dataset = new Dataset([new Quad(new BlankNode('c14n0'), new Iri('http://a/p'), new Literal('x'))]);
         $result = new CanonicalizationResult($dataset, ['e0' => 'c14n0']);
 
-        $this->assertSame($dataset, $result->dataset());
-        $this->assertSame(['e0' => 'c14n0'], $result->issuedIdentifiers());
+        $this->assertSame($dataset, $result->dataset);
+        $this->assertSame(['e0' => 'c14n0'], $result->issuedIdentifiers);
     }
 
     public function testRendersTheQuadsInCodePointOrder(): void

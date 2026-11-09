@@ -144,14 +144,6 @@ final class Dataset implements Countable, IteratorAggregate
     }
 
     /**
-     * @return list<Quad>
-     */
-    public function toArray(): array
-    {
-        return array_values($this->quads);
-    }
-
-    /**
      * Builds a string that is identical for equal quads and distinct for
      * unequal ones
      *

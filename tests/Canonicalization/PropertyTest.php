@@ -32,7 +32,7 @@ final class PropertyTest extends TestCase
         $canonicalizer = new Canonicalizer($hashAlgorithm, $workFactor);
         $canonical = $canonicalizer->canonicalize(Dataset::fromNQuads(W3cManifest::read($action)));
 
-        $again = $canonicalizer->canonicalize($canonical->dataset());
+        $again = $canonicalizer->canonicalize($canonical->dataset);
 
         $this->assertSame(W3cManifest::read($result), $canonical->toNQuads());
         $this->assertSame($canonical->toNQuads(), $again->toNQuads());
