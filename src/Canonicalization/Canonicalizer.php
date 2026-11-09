@@ -29,11 +29,11 @@ use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\LimitExceeded;
+use SocialWeb\Rdf\HashAlgorithm;
 use SocialWeb\Rdf\Quad;
 
 use function array_keys;
 use function count;
-use function hash_algos;
 use function in_array;
 use function is_int;
 use function ksort;
@@ -56,8 +56,8 @@ use const SORT_STRING;
 final class Canonicalizer
 {
     /**
-     * @param string $hashAlgorithm A name listed by PHP's hash_algos();
-     *     RDFC-1.0 requires sha256 by default and sha384 to be supported
+     * @param HashAlgorithm $hashAlgorithm The hash function; RDFC-1.0 requires
+     *     SHA-256 by default and SHA-384 to be supported
      * @param int $workFactor Sets the deep iteration limit to the number of
      *     blank nodes with non-unique first degree hashes raised to this
      *     power: 0 disables deep iterations, 1 allows one call to Hash
@@ -70,14 +70,10 @@ final class Canonicalizer
      *     limit is below 1
      */
     public function __construct(
-        private readonly string $hashAlgorithm = 'sha256',
+        private readonly HashAlgorithm $hashAlgorithm = HashAlgorithm::Sha256,
         private readonly int $workFactor = 1,
         private readonly ?int $maxDeepIterations = null,
     ) {
-        if (!in_array($hashAlgorithm, hash_algos(), true)) {
-            throw new InvalidArgument(sprintf('"%s" is not a hash algorithm this PHP supports', $hashAlgorithm));
-        }
-
         if ($workFactor < 0) {
             throw new InvalidArgument(sprintf('workFactor must not be negative; %d given', $workFactor));
         }

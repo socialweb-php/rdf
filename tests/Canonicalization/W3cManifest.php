@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SocialWeb\Test\Rdf\Canonicalization;
 
 use RuntimeException;
+use SocialWeb\Rdf\HashAlgorithm;
 
 use function file_get_contents;
 use function is_array;
@@ -12,7 +13,6 @@ use function is_string;
 use function json_decode;
 use function ltrim;
 use function sprintf;
-use function strtolower;
 
 use const JSON_THROW_ON_ERROR;
 
@@ -36,12 +36,11 @@ final class W3cManifest
     /**
      * Yields, for every entry of the given type, its identifier and the
      * action file path, the result file path (null for the negative test),
-     * the hash algorithm name as PHP's hash() knows it, and the work factor
-     * to run with
+     * the hash algorithm, and the work factor to run with
      *
      * @param self::EVAL | self::MAP | self::NEGATIVE $type
      *
-     * @return iterable<string, array{string, string | null, string, int}>
+     * @return iterable<string, array{string, string | null, HashAlgorithm, int}>
      */
     public static function entries(string $type): iterable
     {
@@ -62,10 +61,22 @@ final class W3cManifest
             yield ltrim(self::string($entry, 'id'), '#') => [
                 self::FIXTURES . '/' . self::string($entry, 'action'),
                 $result,
-                strtolower(self::string($entry, 'hashAlgorithm', 'SHA256')),
+                self::hashAlgorithm(self::string($entry, 'hashAlgorithm', 'SHA256')),
                 self::workFactor(self::string($entry, 'computationalComplexity')),
             ];
         }
+    }
+
+    /**
+     * Maps the manifest's name for a hash algorithm to the enum case
+     */
+    public static function hashAlgorithm(string $name): HashAlgorithm
+    {
+        return match ($name) {
+            'SHA256' => HashAlgorithm::Sha256,
+            'SHA384' => HashAlgorithm::Sha384,
+            default => throw new RuntimeException(sprintf('Unknown hash algorithm "%s"', $name)),
+        };
     }
 
     /**

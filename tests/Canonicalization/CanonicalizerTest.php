@@ -8,6 +8,7 @@ use SocialWeb\Rdf\Canonicalization\Canonicalizer;
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\LimitExceeded;
+use SocialWeb\Rdf\HashAlgorithm;
 use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Literal;
 use SocialWeb\Rdf\Quad;
@@ -34,20 +35,12 @@ final class CanonicalizerTest extends TestCase
         . "_:e0 <http://example.org/vocab#next> _:e2 .\n"
         . "_:e1 <http://example.org/vocab#next> _:e2 .\n";
 
-    public function testRejectsAnUnknownHashAlgorithm(): void
-    {
-        $this->expectException(InvalidArgument::class);
-        $this->expectExceptionMessageIsOrContains('"nope" is not a hash algorithm this PHP supports');
-
-        new Canonicalizer('nope');
-    }
-
     public function testRejectsANegativeWorkFactor(): void
     {
         $this->expectException(InvalidArgument::class);
         $this->expectExceptionMessageIsOrContains('workFactor must not be negative; -1 given');
 
-        new Canonicalizer('sha256', -1);
+        new Canonicalizer(HashAlgorithm::Sha256, -1);
     }
 
     public function testRejectsADeepIterationLimitBelowOne(): void
@@ -55,7 +48,7 @@ final class CanonicalizerTest extends TestCase
         $this->expectException(InvalidArgument::class);
         $this->expectExceptionMessageIsOrContains('maxDeepIterations must be at least 1; 0 given');
 
-        new Canonicalizer('sha256', 1, 0);
+        new Canonicalizer(HashAlgorithm::Sha256, 1, 0);
     }
 
     public function testRejectsANegativeDeepIterationLimit(): void
@@ -63,7 +56,7 @@ final class CanonicalizerTest extends TestCase
         $this->expectException(InvalidArgument::class);
         $this->expectExceptionMessageIsOrContains('maxDeepIterations must be at least 1; -5 given');
 
-        new Canonicalizer('sha256', 1, -5);
+        new Canonicalizer(HashAlgorithm::Sha256, 1, -5);
     }
 
     public function testCanonicalizesADatasetWithoutBlankNodes(): void
@@ -137,7 +130,7 @@ final class CanonicalizerTest extends TestCase
             . "_:e2 <http://a/p> _:e4 .\n_:e3 <http://a/q> \"x\" .\n_:e4 <http://a/q> \"y\" .\n",
         );
 
-        $result = (new Canonicalizer('sha256', 2))->canonicalize($dataset);
+        $result = (new Canonicalizer(HashAlgorithm::Sha256, 2))->canonicalize($dataset);
 
         $this->assertSame(
             "_:c14n0 <http://a/q> \"x\" .\n"
@@ -160,7 +153,7 @@ final class CanonicalizerTest extends TestCase
 
     public function testAWorkFactorOfZeroDisablesDeepIterations(): void
     {
-        $canonicalizer = new Canonicalizer('sha256', 0);
+        $canonicalizer = new Canonicalizer(HashAlgorithm::Sha256, 0);
         $tree = Dataset::fromNQuads("_:a <http://a/p> _:b .\n_:b <http://a/p> <http://a/o> .\n");
 
         $this->assertSame(
@@ -176,7 +169,7 @@ final class CanonicalizerTest extends TestCase
 
     public function testAWorkFactorOfTwoAllowsTheSquareOfTheNonUniqueCount(): void
     {
-        $result = (new Canonicalizer('sha256', 2))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
+        $result = (new Canonicalizer(HashAlgorithm::Sha256, 2))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
 
         $this->assertSame(self::CIRCLE_CANONICAL, $result->toNQuads());
         $this->assertSame(['a' => 'c14n0', 'b' => 'c14n1'], $result->issuedIdentifiers());
@@ -184,14 +177,14 @@ final class CanonicalizerTest extends TestCase
 
     public function testAnExplicitLimitOverridesTheWorkFactor(): void
     {
-        $result = (new Canonicalizer('sha256', 0, 4))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
+        $result = (new Canonicalizer(HashAlgorithm::Sha256, 0, 4))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
 
         $this->assertSame(self::CIRCLE_CANONICAL, $result->toNQuads());
 
         $this->expectException(LimitExceeded::class);
         $this->expectExceptionMessageIsOrContains('The maxDeepIterations limit of 3 was exceeded');
 
-        (new Canonicalizer('sha256', 3, 3))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
+        (new Canonicalizer(HashAlgorithm::Sha256, 3, 3))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
     }
 
     public function testAcceptsAnExplicitLimitOfOne(): void
@@ -199,7 +192,7 @@ final class CanonicalizerTest extends TestCase
         $this->expectException(LimitExceeded::class);
         $this->expectExceptionMessageIsOrContains('The maxDeepIterations limit of 1 was exceeded');
 
-        (new Canonicalizer('sha256', 1, 1))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
+        (new Canonicalizer(HashAlgorithm::Sha256, 1, 1))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
     }
 
     public function testSkipsGroupMembersThatAlreadyHaveACanonicalIdentifier(): void
@@ -215,7 +208,7 @@ final class CanonicalizerTest extends TestCase
             . "_:m3 <http://a/r> \"3\" .\n_:m4 <http://a/r> \"4\" .\n",
         );
 
-        $result = (new Canonicalizer('sha256', 3))->canonicalize($dataset);
+        $result = (new Canonicalizer(HashAlgorithm::Sha256, 3))->canonicalize($dataset);
 
         $this->assertSame(
             "_:c14n0 <http://a/r> \"2\" .\n"
@@ -253,7 +246,7 @@ final class CanonicalizerTest extends TestCase
     public function testTreatsAnOverflowingLimitAsUnlimited(): void
     {
         // 2 ** 70 does not fit in an integer.
-        $result = (new Canonicalizer('sha256', 70))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
+        $result = (new Canonicalizer(HashAlgorithm::Sha256, 70))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
 
         $this->assertSame(self::CIRCLE_CANONICAL, $result->toNQuads());
     }
@@ -263,7 +256,7 @@ final class CanonicalizerTest extends TestCase
         $dataset = Dataset::fromNQuads(self::DIAMOND);
 
         $sha256 = (new Canonicalizer())->canonicalize($dataset);
-        $sha384 = (new Canonicalizer('sha384'))->canonicalize($dataset);
+        $sha384 = (new Canonicalizer(HashAlgorithm::Sha384))->canonicalize($dataset);
 
         $this->assertSame(
             "<http://example.org/vocab#test> <http://example.org/vocab#A> _:c14n2 .\n"

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SocialWeb\Test\Rdf\Canonicalization;
 
 use RuntimeException;
+use SocialWeb\Rdf\HashAlgorithm;
 use SocialWeb\Test\Rdf\TestCase;
 
 use function iterator_to_array;
@@ -21,7 +22,7 @@ final class W3cManifestTest extends TestCase
             [
                 W3cManifest::FIXTURES . '/rdfc10/test001-in.nq',
                 W3cManifest::FIXTURES . '/rdfc10/test001-rdfc10.nq',
-                'sha256',
+                HashAlgorithm::Sha256,
                 0,
             ],
             $entries['test001c'],
@@ -31,7 +32,7 @@ final class W3cManifestTest extends TestCase
         $this->assertArrayHasKey('test044c', $entries);
         $this->assertSame(3, $entries['test044c'][3]);
         $this->assertArrayHasKey('test075c', $entries);
-        $this->assertSame('sha384', $entries['test075c'][2]);
+        $this->assertSame(HashAlgorithm::Sha384, $entries['test075c'][2]);
     }
 
     public function testListsEveryMapTest(): void
@@ -44,13 +45,13 @@ final class W3cManifestTest extends TestCase
             [
                 W3cManifest::FIXTURES . '/rdfc10/test003-in.nq',
                 W3cManifest::FIXTURES . '/rdfc10/test003-rdfc10map.json',
-                'sha256',
+                HashAlgorithm::Sha256,
                 0,
             ],
             $entries['test003m'],
         );
         $this->assertArrayHasKey('test075m', $entries);
-        $this->assertSame('sha384', $entries['test075m'][2]);
+        $this->assertSame(HashAlgorithm::Sha384, $entries['test075m'][2]);
     }
 
     public function testListsTheNegativeTest(): void
@@ -58,7 +59,7 @@ final class W3cManifestTest extends TestCase
         $entries = iterator_to_array(W3cManifest::entries(W3cManifest::NEGATIVE));
 
         $this->assertSame(
-            ['test074c' => [W3cManifest::FIXTURES . '/rdfc10/test074-in.nq', null, 'sha256', 3]],
+            ['test074c' => [W3cManifest::FIXTURES . '/rdfc10/test074-in.nq', null, HashAlgorithm::Sha256, 3]],
             $entries,
         );
     }
@@ -90,5 +91,13 @@ final class W3cManifestTest extends TestCase
         $this->expectExceptionMessageIsOrContains('Unable to read fixture');
 
         W3cManifest::read(W3cManifest::FIXTURES . '/does-not-exist.nq');
+    }
+
+    public function testRejectsAnUnknownHashAlgorithm(): void
+    {
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessageIsOrContains('Unknown hash algorithm "MD5"');
+
+        W3cManifest::hashAlgorithm('MD5');
     }
 }

@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Canonicalization\Canonicalizer;
 use SocialWeb\Rdf\Dataset;
+use SocialWeb\Rdf\HashAlgorithm;
 use SocialWeb\Rdf\Quad;
 use SocialWeb\Test\Rdf\TestCase;
 
@@ -24,7 +25,7 @@ final class PropertyTest extends TestCase
     public function testCanonicalizingACanonicalDatasetIsANoOp(
         string $action,
         ?string $result,
-        string $hashAlgorithm,
+        HashAlgorithm $hashAlgorithm,
         int $workFactor,
     ): void {
         $this->assertNotNull($result);
@@ -41,7 +42,7 @@ final class PropertyTest extends TestCase
     public function testRelabelingAndReorderingTheInputDoesNotChangeTheCanonicalForm(
         string $action,
         ?string $result,
-        string $hashAlgorithm,
+        HashAlgorithm $hashAlgorithm,
         int $workFactor,
     ): void {
         $this->assertNotNull($result);
@@ -53,7 +54,7 @@ final class PropertyTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string, string | null, string, int}>
+     * @return iterable<string, array{string, string | null, HashAlgorithm, int}>
      */
     public static function evaluationTests(): iterable
     {

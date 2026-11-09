@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use SocialWeb\Rdf\Canonicalization\Canonicalizer;
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\LimitExceeded;
+use SocialWeb\Rdf\HashAlgorithm;
 use SocialWeb\Test\Rdf\TestCase;
 
 use function json_decode;
@@ -28,7 +29,7 @@ use const SORT_STRING;
 final class W3cCanonicalizationTest extends TestCase
 {
     #[DataProvider('evaluationTests')]
-    public function testEvaluation(string $action, ?string $result, string $hashAlgorithm, int $workFactor): void
+    public function testEvaluation(string $action, ?string $result, HashAlgorithm $hashAlgorithm, int $workFactor): void
     {
         $this->assertNotNull($result);
         $dataset = Dataset::fromNQuads(W3cManifest::read($action));
@@ -39,7 +40,7 @@ final class W3cCanonicalizationTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string, string | null, string, int}>
+     * @return iterable<string, array{string, string | null, HashAlgorithm, int}>
      */
     public static function evaluationTests(): iterable
     {
@@ -50,7 +51,7 @@ final class W3cCanonicalizationTest extends TestCase
     public function testIssuedIdentifiersMap(
         string $action,
         ?string $result,
-        string $hashAlgorithm,
+        HashAlgorithm $hashAlgorithm,
         int $workFactor,
     ): void {
         $this->assertNotNull($result);
@@ -66,7 +67,7 @@ final class W3cCanonicalizationTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string, string | null, string, int}>
+     * @return iterable<string, array{string, string | null, HashAlgorithm, int}>
      */
     public static function mapTests(): iterable
     {
@@ -77,7 +78,7 @@ final class W3cCanonicalizationTest extends TestCase
     public function testNegativeEvaluation(
         string $action,
         ?string $result,
-        string $hashAlgorithm,
+        HashAlgorithm $hashAlgorithm,
         int $workFactor,
     ): void {
         $this->assertNull($result);
@@ -89,7 +90,7 @@ final class W3cCanonicalizationTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string, string | null, string, int}>
+     * @return iterable<string, array{string, string | null, HashAlgorithm, int}>
      */
     public static function negativeTests(): iterable
     {
@@ -100,7 +101,7 @@ final class W3cCanonicalizationTest extends TestCase
     public function testTheNegativeTestAlsoFailsWithTheDefaultWorkFactor(
         string $action,
         ?string $result,
-        string $hashAlgorithm,
+        HashAlgorithm $hashAlgorithm,
         int $workFactor,
     ): void {
         $dataset = Dataset::fromNQuads(W3cManifest::read($action));

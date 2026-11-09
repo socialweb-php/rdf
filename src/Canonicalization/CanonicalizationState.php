@@ -25,6 +25,7 @@ declare(strict_types=1);
 
 namespace SocialWeb\Rdf\Canonicalization;
 
+use SocialWeb\Rdf\HashAlgorithm;
 use SocialWeb\Rdf\Quad;
 
 use function hash;
@@ -75,7 +76,7 @@ final class CanonicalizationState
 
     public int $remainingDeepIterations = 0;
 
-    public function __construct(public readonly string $hashAlgorithm)
+    public function __construct(public readonly HashAlgorithm $hashAlgorithm)
     {
         $this->canonicalIssuer = new IdentifierIssuer('c14n');
     }
@@ -85,6 +86,6 @@ final class CanonicalizationState
      */
     public function hash(string $input): string
     {
-        return hash($this->hashAlgorithm, $input);
+        return hash($this->hashAlgorithm->hashName(), $input);
     }
 }

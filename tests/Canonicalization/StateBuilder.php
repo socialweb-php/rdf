@@ -7,6 +7,7 @@ namespace SocialWeb\Test\Rdf\Canonicalization;
 use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Canonicalization\CanonicalizationState;
 use SocialWeb\Rdf\Dataset;
+use SocialWeb\Rdf\HashAlgorithm;
 
 use function in_array;
 
@@ -19,7 +20,7 @@ final class StateBuilder
 {
     public static function fromNQuads(
         string $document,
-        string $hashAlgorithm = 'sha256',
+        HashAlgorithm $hashAlgorithm = HashAlgorithm::Sha256,
         int $deepIterations = 100,
     ): CanonicalizationState {
         $state = new CanonicalizationState($hashAlgorithm);

@@ -8,6 +8,7 @@ use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Canonicalization\HashFirstDegreeQuads;
 use SocialWeb\Rdf\Canonicalization\HashRelatedBlankNode;
 use SocialWeb\Rdf\Canonicalization\IdentifierIssuer;
+use SocialWeb\Rdf\HashAlgorithm;
 use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Quad;
 use SocialWeb\Test\Rdf\TestCase;
@@ -110,7 +111,7 @@ final class HashRelatedBlankNodeTest extends TestCase
 
     public function testHashesWithTheStateAlgorithm(): void
     {
-        $state = StateBuilder::fromNQuads("_:e0 <http://example.com/#p> _:e2 .\n", 'sha384');
+        $state = StateBuilder::fromNQuads("_:e0 <http://example.com/#p> _:e2 .\n", HashAlgorithm::Sha384);
         $state->canonicalIssuer->issue('e2');
         $hasher = new HashRelatedBlankNode($state, new HashFirstDegreeQuads($state));
         $quad = new Quad(new BlankNode('e0'), new Iri('http://example.com/#p'), new BlankNode('e2'));
