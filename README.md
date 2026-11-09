@@ -23,7 +23,7 @@ This project adheres to a [code of conduct](CODE_OF_CONDUCT.md). By participatin
 
 Install this package as a dependency using [Composer](https://getcomposer.org).
 
-``` bash
+```bash
 composer require socialweb/rdf
 ```
 
@@ -35,7 +35,7 @@ You have an N-Quads document and want bytes you can hash or sign, which anyone h
 
 The two documents below record the same game session. They list the statements in a different order and label their blank nodes differently, and they still canonicalize to the same bytes.
 
-``` php
+```php
 use SocialWeb\Rdf\Canonicalization\Canonicalizer;
 use SocialWeb\Rdf\Dataset;
 
@@ -67,7 +67,7 @@ echo $first->toNQuads() === $second->toNQuads() ? "the same bytes\n" : "differen
 
 This prints:
 
-``` text
+```text
 _:c14n0 <https://example.com/ns/game#plays> "Oriel" .
 _:c14n1 <https://example.com/ns/game#master> "Haruto Fuwa" .
 _:c14n1 <https://example.com/ns/game#player> _:c14n0 .
@@ -79,11 +79,11 @@ the same bytes
 
 The result holds more than the text. Its `dataset` property is a `Dataset` whose blank nodes have their canonical labels, and its `issuedIdentifiers` property maps each input label to its canonical label:
 
-``` php
+```php
 print_r($first->issuedIdentifiers);
 ```
 
-``` text
+```text
 Array
 (
     [amara] => c14n0
@@ -94,7 +94,7 @@ Array
 
 RDFC-1.0 hashes with SHA-256 by default and requires SHA-384 to be available. Pass a `HashAlgorithm` case to choose; the canonical labels change with the algorithm, so both sides of a signature must use the same one.
 
-``` php
+```php
 use SocialWeb\Rdf\Canonicalization\Canonicalizer;
 use SocialWeb\Rdf\HashAlgorithm;
 
@@ -103,7 +103,7 @@ $canonicalizer = new Canonicalizer(HashAlgorithm::Sha384);
 
 A document that does not follow the N-Quads grammar raises `SocialWeb\Rdf\Exception\MalformedNQuads` from `Dataset::fromNQuads()`. The exception's `reason` property is a `MalformedNQuadsReason` case naming the rule the line broke, and `lineNumber` and `columnNumber` say where. Nothing is skipped or repaired.
 
-``` php
+```php
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\MalformedNQuads;
 
@@ -117,7 +117,7 @@ try {
 }
 ```
 
-``` text
+```text
 MissingTerminator at line 1, column 83
 Malformed N-Quads at line 1, column 83: expected "." to end the statement; the offending line is "<https://example.com/session/7> <https://example.com/ns/game#master> "Haruto Fuwa""
 ```
@@ -126,7 +126,7 @@ Malformed N-Quads at line 1, column 83: expected "." to end the statement; the o
 
 Your statements may not be N-Quads text yet: they may be rows from a store, or the triples another RDF library produced. Any code that can enumerate statements can build a `Dataset`. Map each component to one of this package's terms: `Iri` for an IRI, `BlankNode` for a blank node, and `Literal` for a literal, with an optional datatype `Iri` or language tag. A `Quad` takes a subject, a predicate, an object, and a graph name; leave the graph name out for a statement in the default graph. `Dataset::toNQuads()` writes the dataset in insertion order, which is useful for a look at what was built.
 
-``` php
+```php
 use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Iri;
@@ -150,7 +150,7 @@ echo $dataset->toNQuads();
 
 This prints:
 
-``` text
+```text
 <https://example.com/session/7> <https://example.com/ns/game#master> "Haruto Fuwa" .
 <https://example.com/session/7> <https://example.com/ns/game#roll> _:roll .
 _:roll <https://example.com/ns/game#by> "Priya Venkatesan" .
@@ -164,7 +164,7 @@ A dataset is a set: adding a quad equal to one it already holds changes nothing,
 
 RDFC-1.0 can take a very long time on data built to defeat it, in which many blank nodes look alike and can be told apart only by exploring every way of pairing them. The canonicalizer bounds the number of deep comparisons it makes and raises `SocialWeb\Rdf\Exception\LimitExceeded` when the bound is reached, instead of running on. Following the reference implementation, the bound is derived from the data: the number of blank nodes whose first-degree hashes are not unique, raised to the power of the constructor's `workFactor`, which is 1 by default. Pass `maxDeepIterations` to set a fixed bound instead.
 
-``` php
+```php
 use SocialWeb\Rdf\Canonicalization\Canonicalizer;
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\LimitExceeded;
@@ -185,7 +185,7 @@ echo (new Canonicalizer(workFactor: 2))->canonicalize(Dataset::fromNQuads($cycle
 
 This prints:
 
-``` text
+```text
 The maxDeepIterations limit of 2 was exceeded
 _:c14n0 <https://example.com/ns/game#next> _:c14n1 .
 _:c14n1 <https://example.com/ns/game#next> _:c14n0 .
