@@ -30,6 +30,7 @@ use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\DefaultGraph;
 use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\MalformedNQuads;
+use SocialWeb\Rdf\Exception\MalformedNQuadsReason;
 use SocialWeb\Rdf\GraphName;
 use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Literal;
@@ -39,6 +40,7 @@ use SocialWeb\Rdf\Term;
 
 use function chr;
 use function intval;
+use function lcfirst;
 use function preg_match;
 use function strcspn;
 use function strpos;
@@ -111,7 +113,13 @@ final class Parser
     private function parseLine(string $line, int $lineNumber): ?Quad
     {
         if (preg_match('//u', $line) !== 1) {
-            throw new MalformedNQuads($lineNumber, 1, $line, 'The line is not valid UTF-8');
+            throw new MalformedNQuads(
+                MalformedNQuadsReason::InvalidUtf8,
+                $lineNumber,
+                1,
+                $line,
+                'the line is not valid UTF-8',
+            );
         }
 
         $scanner = new Scanner($line, $lineNumber);
@@ -131,13 +139,16 @@ final class Parser
         $scanner->skipWhitespace();
 
         if (!$scanner->accept('.')) {
-            throw $scanner->error("Expected '.' to end the statement");
+            throw $scanner->error(MalformedNQuadsReason::MissingTerminator, 'expected "." to end the statement');
         }
 
         $scanner->skipWhitespace();
 
         if (!$scanner->atEnd()) {
-            throw $scanner->error("Expected the end of the line after '.'");
+            throw $scanner->error(
+                MalformedNQuadsReason::TextAfterTerminator,
+                'expected the end of the line after "."',
+            );
         }
 
         return new Quad($subject, $predicate, $object, $graph);
@@ -148,14 +159,17 @@ final class Parser
         return match ($scanner->peek()) {
             '<' => $this->parseIri($scanner),
             '_' => $this->parseBlankNode($scanner),
-            default => throw $scanner->error('Expected an IRI or a blank node label as the subject'),
+            default => throw $scanner->error(
+                MalformedNQuadsReason::InvalidSubject,
+                'expected an IRI or a blank node label as the subject',
+            ),
         };
     }
 
     private function parsePredicate(Scanner $scanner): Iri
     {
         if ($scanner->peek() !== '<') {
-            throw $scanner->error('Expected an IRI as the predicate');
+            throw $scanner->error(MalformedNQuadsReason::InvalidPredicate, 'expected an IRI as the predicate');
         }
 
         return $this->parseIri($scanner);
@@ -167,7 +181,10 @@ final class Parser
             '<' => $this->parseIri($scanner),
             '_' => $this->parseBlankNode($scanner),
             '"' => $this->parseLiteral($scanner),
-            default => throw $scanner->error('Expected an IRI, a blank node label, or a literal as the object'),
+            default => throw $scanner->error(
+                MalformedNQuadsReason::InvalidObject,
+                'expected an IRI, a blank node label, or a literal as the object',
+            ),
         };
     }
 
@@ -186,19 +203,28 @@ final class Parser
         $text = $scanner->takeIriRef();
 
         if ($text === null) {
-            throw $scanner->error('Malformed IRI reference');
+            throw $scanner->error(MalformedNQuadsReason::MalformedIriReference, 'malformed IRI reference');
         }
 
         $value = $this->unescape($text);
 
         if ($value === null) {
-            throw $scanner->error('An escape in the IRI does not denote a Unicode scalar value', $start);
+            throw $scanner->error(
+                MalformedNQuadsReason::InvalidIriEscape,
+                'an escape in the IRI does not denote a Unicode scalar value',
+                $start,
+            );
         }
 
         try {
             return new Iri($value);
         } catch (InvalidArgument $exception) {
-            throw $scanner->error($exception->getMessage(), $start, $exception);
+            throw $scanner->error(
+                MalformedNQuadsReason::InvalidIri,
+                lcfirst($exception->getMessage()),
+                $start,
+                $exception,
+            );
         }
     }
 
@@ -207,7 +233,7 @@ final class Parser
         $label = $scanner->take(Grammar::BLANK_NODE_LABEL_TOKEN);
 
         if ($label === null) {
-            throw $scanner->error('Malformed blank node label');
+            throw $scanner->error(MalformedNQuadsReason::MalformedBlankNodeLabel, 'malformed blank node label');
         }
 
         return new BlankNode($label);
@@ -219,13 +245,17 @@ final class Parser
         $text = $scanner->takeStringLiteralQuote();
 
         if ($text === null) {
-            throw $scanner->error('Malformed string literal');
+            throw $scanner->error(MalformedNQuadsReason::MalformedStringLiteral, 'malformed string literal');
         }
 
         $lexicalForm = $this->unescape($text);
 
         if ($lexicalForm === null) {
-            throw $scanner->error('An escape in the literal does not denote a Unicode scalar value', $start);
+            throw $scanner->error(
+                MalformedNQuadsReason::InvalidLiteralEscape,
+                'an escape in the literal does not denote a Unicode scalar value',
+                $start,
+            );
         }
 
         $datatype = null;
@@ -233,7 +263,7 @@ final class Parser
 
         if ($scanner->accept('^^')) {
             if ($scanner->peek() !== '<') {
-                throw $scanner->error("Expected a datatype IRI after '^^'");
+                throw $scanner->error(MalformedNQuadsReason::MissingDatatype, 'expected a datatype IRI after "^^"');
             }
 
             $datatype = $this->parseIri($scanner);
@@ -241,14 +271,19 @@ final class Parser
             $language = $scanner->take(Grammar::LANGTAG_TOKEN);
 
             if ($language === null) {
-                throw $scanner->error('Malformed language tag');
+                throw $scanner->error(MalformedNQuadsReason::MalformedLanguageTag, 'malformed language tag');
             }
         }
 
         try {
             return new Literal($lexicalForm, $datatype, $language);
         } catch (InvalidArgument $exception) {
-            throw $scanner->error($exception->getMessage(), $start, $exception);
+            throw $scanner->error(
+                MalformedNQuadsReason::InvalidLiteral,
+                lcfirst($exception->getMessage()),
+                $start,
+                $exception,
+            );
         }
     }
 

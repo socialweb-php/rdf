@@ -25,38 +25,44 @@ declare(strict_types=1);
 
 namespace SocialWeb\Rdf\Exception;
 
-use RuntimeException;
 use Throwable;
+use UnexpectedValueException;
 
 use function sprintf;
 
 /**
  * Thrown when an N-Quads document does not conform to the N-Quads 1.1 grammar
+ *
+ * The reason says which rule the line broke, and the line and column say
+ * where. The properties are named `lineNumber` and `columnNumber` because
+ * `Exception` already declares `$line`, which backs `getLine()`.
  */
-final class MalformedNQuads extends RuntimeException implements RdfException
+final class MalformedNQuads extends UnexpectedValueException implements RdfException
 {
     /**
-     * The properties are named `lineNumber` and `columnNumber` because
-     * `Exception` already declares `$line`, which backs `getLine()`.
-     *
-     * @param int $lineNumber The one-based line number where the problem was detected
-     * @param int $columnNumber The one-based column where the problem was detected
-     * @param string $offendingLine The full text of the line that failed to parse
-     * @param string $reason A short description of what was wrong
+     * @param MalformedNQuadsReason $reason Which rule the line broke
+     * @param int $lineNumber The one-based line number where the problem was
+     *     detected
+     * @param int $columnNumber The one-based column where the problem was
+     *     detected, counted in code points
+     * @param string $offendingLine The full text of the line that failed to
+     *     parse
+     * @param string $detail What was wrong, in words, starting in lowercase
      */
     public function __construct(
+        public readonly MalformedNQuadsReason $reason,
         public readonly int $lineNumber,
         public readonly int $columnNumber,
         public readonly string $offendingLine,
-        string $reason,
+        string $detail,
         ?Throwable $previous = null,
     ) {
         parent::__construct(
             sprintf(
-                'Malformed N-Quads at line %d, column %d: %s. Offending line: %s',
+                'Malformed N-Quads at line %d, column %d: %s; the offending line is "%s"',
                 $lineNumber,
                 $columnNumber,
-                $reason,
+                $detail,
                 $offendingLine,
             ),
             0,

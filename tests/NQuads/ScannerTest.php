@@ -6,6 +6,7 @@ namespace SocialWeb\Test\Rdf\NQuads;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use SocialWeb\Rdf\Exception\InvalidArgument;
+use SocialWeb\Rdf\Exception\MalformedNQuadsReason;
 use SocialWeb\Rdf\NQuads\Grammar;
 use SocialWeb\Rdf\NQuads\Scanner;
 use SocialWeb\Test\Rdf\TestCase;
@@ -188,14 +189,15 @@ final class ScannerTest extends TestCase
         $scanner->takeIriRef();
         $scanner->skipWhitespace();
 
-        $error = $scanner->error('unexpected x');
+        $error = $scanner->error(MalformedNQuadsReason::MissingTerminator, 'unexpected x');
 
         $this->assertSame(7, $error->lineNumber);
         $this->assertSame(7, $error->columnNumber);
         $this->assertSame('<a:b> x', $error->offendingLine);
         $this->assertNull($error->getPrevious());
+        $this->assertSame(MalformedNQuadsReason::MissingTerminator, $error->reason);
         $this->assertSame(
-            'Malformed N-Quads at line 7, column 7: unexpected x. Offending line: <a:b> x',
+            'Malformed N-Quads at line 7, column 7: unexpected x; the offending line is "<a:b> x"',
             $error->getMessage(),
         );
     }
@@ -208,7 +210,7 @@ final class ScannerTest extends TestCase
         $scanner->skipWhitespace();
 
         $this->assertSame(14, $scanner->position());
-        $this->assertSame(9, $scanner->error('unexpected x')->columnNumber);
+        $this->assertSame(9, $scanner->error(MalformedNQuadsReason::MissingTerminator, 'unexpected x')->columnNumber);
     }
 
     public function testErrorReportsAnExplicitOffsetAndAPreviousThrowable(): void
@@ -219,7 +221,7 @@ final class ScannerTest extends TestCase
         $scanner->takeIriRef();
         $previous = new InvalidArgument('cause');
 
-        $error = $scanner->error('bad', 6, $previous);
+        $error = $scanner->error(MalformedNQuadsReason::InvalidIri, 'bad', 6, $previous);
 
         $this->assertSame(7, $error->columnNumber);
         $this->assertSame($previous, $error->getPrevious());
@@ -229,6 +231,6 @@ final class ScannerTest extends TestCase
     {
         $scanner = new Scanner('x', 3);
 
-        $this->assertSame(1, $scanner->error('bad')->columnNumber);
+        $this->assertSame(1, $scanner->error(MalformedNQuadsReason::InvalidSubject, 'bad')->columnNumber);
     }
 }

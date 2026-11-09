@@ -10,6 +10,7 @@ use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\DefaultGraph;
 use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\MalformedNQuads;
+use SocialWeb\Rdf\Exception\MalformedNQuadsReason;
 use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Literal;
 use SocialWeb\Rdf\NQuads\Parser;
@@ -384,7 +385,8 @@ final class ParserTest extends TestCase
         } catch (MalformedNQuads $exception) {
             $this->assertSame(1, $exception->lineNumber);
             $this->assertSame(27, $exception->columnNumber);
-            $this->assertStringContainsString('Malformed string literal', $exception->getMessage());
+            $this->assertStringContainsString('malformed string literal', $exception->getMessage());
+            $this->assertSame(MalformedNQuadsReason::MalformedStringLiteral, $exception->reason);
 
             return;
         }
@@ -397,14 +399,16 @@ final class ParserTest extends TestCase
         string $document,
         int $lineNumber,
         int $columnNumber,
-        string $reason,
+        string $detail,
+        MalformedNQuadsReason $reason,
     ): void {
         try {
             (new Parser())->parse($document);
         } catch (MalformedNQuads $exception) {
             $this->assertSame($lineNumber, $exception->lineNumber, 'line number');
             $this->assertSame($columnNumber, $exception->columnNumber, 'column number');
-            $this->assertStringContainsString($reason, $exception->getMessage());
+            $this->assertStringContainsString($detail, $exception->getMessage());
+            $this->assertSame($reason, $exception->reason, 'reason');
 
             return;
         }
@@ -413,206 +417,248 @@ final class ParserTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{string, int, int, string}>
+     * @return iterable<string, array{string, int, int, string, MalformedNQuadsReason}>
      */
     public static function malformedDocuments(): iterable
     {
-        $subject = 'Expected an IRI or a blank node label as the subject';
-        $predicate = 'Expected an IRI as the predicate';
-        $object = 'Expected an IRI, a blank node label, or a literal as the object';
-        $terminator = "Expected '.' to end the statement";
-        $endOfLine = "Expected the end of the line after '.'";
+        $subject = ['expected an IRI or a blank node label as the subject', MalformedNQuadsReason::InvalidSubject];
+        $predicate = ['expected an IRI as the predicate', MalformedNQuadsReason::InvalidPredicate];
+        $object = [
+            'expected an IRI, a blank node label, or a literal as the object',
+            MalformedNQuadsReason::InvalidObject,
+        ];
+        $terminator = ['expected "." to end the statement', MalformedNQuadsReason::MissingTerminator];
+        $endOfLine = ['expected the end of the line after "."', MalformedNQuadsReason::TextAfterTerminator];
+        $iriReference = ['malformed IRI reference', MalformedNQuadsReason::MalformedIriReference];
+        $relativeIri = ['an IRI must be absolute', MalformedNQuadsReason::InvalidIri];
+        $iriEscape = [
+            'an escape in the IRI does not denote a Unicode scalar value',
+            MalformedNQuadsReason::InvalidIriEscape,
+        ];
+        $blankNodeLabel = ['malformed blank node label', MalformedNQuadsReason::MalformedBlankNodeLabel];
+        $stringLiteral = ['malformed string literal', MalformedNQuadsReason::MalformedStringLiteral];
+        $literalEscape = [
+            'an escape in the literal does not denote a Unicode scalar value',
+            MalformedNQuadsReason::InvalidLiteralEscape,
+        ];
+        $languageTag = ['malformed language tag', MalformedNQuadsReason::MalformedLanguageTag];
 
-        yield 'Turtle prefix directive' => ['@prefix : <http://a/> .', 1, 1, $subject];
-        yield 'Turtle base directive' => ['@base <http://a/> .', 1, 1, $subject];
-        yield 'literal subject' => ['"s" <http://a/p> <http://a/o> .', 1, 1, $subject];
-        yield 'bare word subject' => ['s <http://a/p> <http://a/o> .', 1, 1, $subject];
-        yield 'only a subject' => ['<http://a/s>', 1, 13, $predicate];
-        yield 'literal predicate' => ['<http://a/s> "p" <http://a/o> .', 1, 14, $predicate];
-        yield 'blank node predicate' => ['<http://a/s> _:p <http://a/o> .', 1, 14, $predicate];
-        yield 'number object' => ['<http://a/s> <http://a/p> 1 .', 1, 27, $object];
-        yield 'decimal object' => ['<http://a/s> <http://a/p> 1.0 .', 1, 27, $object];
-        yield 'single-quoted object' => ["<http://a/s> <http://a/p> 'o' .", 1, 27, $object];
-        yield 'long single-quoted object' => ["<http://a/s> <http://a/p> '''o''' .", 1, 27, $object];
-        yield 'missing object' => ['<http://a/s> <http://a/p> .', 1, 27, $object];
-        yield 'missing terminator' => ['<http://a/s> <http://a/p> <http://a/o>', 1, 39, $terminator];
+        yield 'Turtle prefix directive' => ['@prefix : <http://a/> .', 1, 1, ...$subject];
+        yield 'Turtle base directive' => ['@base <http://a/> .', 1, 1, ...$subject];
+        yield 'literal subject' => ['"s" <http://a/p> <http://a/o> .', 1, 1, ...$subject];
+        yield 'bare word subject' => ['s <http://a/p> <http://a/o> .', 1, 1, ...$subject];
+        yield 'only a subject' => ['<http://a/s>', 1, 13, ...$predicate];
+        yield 'literal predicate' => ['<http://a/s> "p" <http://a/o> .', 1, 14, ...$predicate];
+        yield 'blank node predicate' => ['<http://a/s> _:p <http://a/o> .', 1, 14, ...$predicate];
+        yield 'number object' => ['<http://a/s> <http://a/p> 1 .', 1, 27, ...$object];
+        yield 'decimal object' => ['<http://a/s> <http://a/p> 1.0 .', 1, 27, ...$object];
+        yield 'single-quoted object' => ["<http://a/s> <http://a/p> 'o' .", 1, 27, ...$object];
+        yield 'long single-quoted object' => ["<http://a/s> <http://a/p> '''o''' .", 1, 27, ...$object];
+        yield 'missing object' => ['<http://a/s> <http://a/p> .', 1, 27, ...$object];
+        yield 'missing terminator' => ['<http://a/s> <http://a/p> <http://a/o>', 1, 39, ...$terminator];
         yield 'missing terminator after a graph label' => [
             '<http://a/s> <http://a/p> <http://a/o> _:g',
             1,
             43,
-            $terminator,
+            ...$terminator,
         ];
-        yield 'object list' => ['<http://a/s> <http://a/p> <http://a/o>, <http://a/o2> .', 1, 39, $terminator];
+        yield 'object list' => ['<http://a/s> <http://a/p> <http://a/o>, <http://a/o2> .', 1, 39, ...$terminator];
         yield 'predicate list' => [
             '<http://a/s> <http://a/p> <http://a/o>; <http://a/p2> <http://a/o2> .',
             1,
             39,
-            $terminator,
+            ...$terminator,
         ];
         yield 'fifth term' => [
             '<http://a/s> <http://a/p> <http://a/o> <http://a/g> <http://a/n> .',
             1,
             53,
-            $terminator,
+            ...$terminator,
         ];
         yield 'text after the terminator' => [
             '<http://a/s> <http://a/p> <http://a/o> . <http://a/s>',
             1,
             42,
-            $endOfLine,
+            ...$endOfLine,
         ];
         yield 'two statements on one line' => [
             '<http://a/s> <http://a/p> <http://a/o> . <http://a/s> <http://a/p> <http://a/o> .',
             1,
             42,
-            $endOfLine,
+            ...$endOfLine,
         ];
-        yield 'two terminators' => ['<http://a/s> <http://a/p> <http://a/o> ..', 1, 41, $endOfLine];
-        yield 'IRI with a space' => ['<http://a/ s> <http://a/p> <http://a/o> .', 1, 1, 'Malformed IRI reference'];
+        yield 'two terminators' => ['<http://a/s> <http://a/p> <http://a/o> ..', 1, 41, ...$endOfLine];
+        yield 'IRI with a space' => ['<http://a/ s> <http://a/p> <http://a/o> .', 1, 1, ...$iriReference];
         yield 'IRI with a bad short escape' => [
             '<http://a/s> <http://a/p> <http://a/\u00ZZ> .',
             1,
             27,
-            'Malformed IRI reference',
+            ...$iriReference,
         ];
         yield 'IRI with a bad long escape' => [
             '<http://a/s> <http://a/p> <http://a/\U00ZZ1111> .',
             1,
             27,
-            'Malformed IRI reference',
+            ...$iriReference,
         ];
-        yield 'IRI with an ECHAR' => ['<http://a/s> <http://a/p> <http://a/\n> .', 1, 27, 'Malformed IRI reference'];
+        yield 'IRI with an ECHAR' => ['<http://a/s> <http://a/p> <http://a/\n> .', 1, 27, ...$iriReference];
         yield 'IRI with an escaped slash' => [
             '<http://a/s> <http://a/p> <http://a/\/> .',
             1,
             27,
-            'Malformed IRI reference',
+            ...$iriReference,
         ];
-        yield 'unterminated IRI' => ['<http://a/s> <http://a/p> <http://a/o .', 1, 27, 'Malformed IRI reference'];
-        yield 'relative subject' => ['<s> <http://a/p> <http://a/o> .', 1, 1, 'An IRI must be absolute'];
-        yield 'relative predicate' => ['<http://a/s> <p> <http://a/o> .', 1, 14, 'An IRI must be absolute'];
-        yield 'relative object' => ['<http://a/s> <http://a/p> <o> .', 1, 27, 'An IRI must be absolute'];
+        yield 'unterminated IRI' => ['<http://a/s> <http://a/p> <http://a/o .', 1, 27, ...$iriReference];
+        yield 'relative subject' => [
+            '<s> <http://a/p> <http://a/o> .',
+            1,
+            1,
+            'an IRI must be absolute; "s" has no scheme',
+            MalformedNQuadsReason::InvalidIri,
+        ];
+        yield 'relative predicate' => ['<http://a/s> <p> <http://a/o> .', 1, 14, ...$relativeIri];
+        yield 'relative object' => ['<http://a/s> <http://a/p> <o> .', 1, 27, ...$relativeIri];
         yield 'relative graph label' => [
             '<http://a/s> <http://a/p> <http://a/o> <g> .',
             1,
             40,
-            'An IRI must be absolute',
+            ...$relativeIri,
         ];
-        yield 'empty IRI' => ['<http://a/s> <http://a/p> <> .', 1, 27, 'An IRI must not be empty'];
+        yield 'empty IRI' => [
+            '<http://a/s> <http://a/p> <> .',
+            1,
+            27,
+            'an IRI must not be empty',
+            MalformedNQuadsReason::InvalidIri,
+        ];
         yield 'escape decoding to a forbidden character' => [
             '<http://a/s> <http://a/p> <http://a/\u0020> .',
             1,
             27,
             'contains a character that is not allowed in an IRI',
+            MalformedNQuadsReason::InvalidIri,
         ];
         yield 'IRI escape naming a surrogate' => [
             '<http://a/s> <http://a/p> <http://a/\uD800> .',
             1,
             27,
-            'An escape in the IRI does not denote a Unicode scalar value',
+            ...$iriEscape,
         ];
         yield 'IRI escape above U+10FFFF' => [
             '<http://a/s> <http://a/p> <http://a/\U00110000> .',
             1,
             27,
-            'An escape in the IRI does not denote a Unicode scalar value',
+            ...$iriEscape,
         ];
         yield 'blank node with a leading colon' => [
             '_::a <http://a/p> <http://a/o> .',
             1,
             1,
-            'Malformed blank node label',
+            ...$blankNodeLabel,
         ];
-        yield 'blank node with an inner colon' => ['_:abc:def <http://a/p> <http://a/o> .', 1, 6, $predicate];
+        yield 'blank node with an inner colon' => ['_:abc:def <http://a/p> <http://a/o> .', 1, 6, ...$predicate];
         yield 'blank node with a leading hyphen' => [
             '_:-a <http://a/p> <http://a/o> .',
             1,
             1,
-            'Malformed blank node label',
+            ...$blankNodeLabel,
         ];
-        yield 'blank node with no label' => ['_: <http://a/p> <http://a/o> .', 1, 1, 'Malformed blank node label'];
-        yield 'invalid UTF-8' => ["<http://a/s> <http://a/p> <http://a/\xff> .", 1, 1, 'The line is not valid UTF-8'];
+        yield 'blank node with no label' => ['_: <http://a/p> <http://a/o> .', 1, 1, ...$blankNodeLabel];
+        yield 'invalid UTF-8' => [
+            "<http://a/s> <http://a/p> <http://a/\xff> .",
+            1,
+            1,
+            'the line is not valid UTF-8',
+            MalformedNQuadsReason::InvalidUtf8,
+        ];
         yield 'error on the second line' => [
             "<http://a/s> <http://a/p> <http://a/o> .\n<http://a/s> <http://a/p>",
             2,
             26,
-            $object,
+            ...$object,
         ];
         yield 'CRLF counts as one line break' => [
             "<http://a/s> <http://a/p> <http://a/o> .\r\n<http://a/s> <http://a/p>",
             2,
             26,
-            $object,
+            ...$object,
         ];
         yield 'blank lines are counted' => [
             "<http://a/s> <http://a/p> <http://a/o> .\n\n\n<http://a/s>",
             4,
             13,
-            $predicate,
+            ...$predicate,
         ];
-        yield 'comment lines are counted' => ["# one\n# two\n<http://a/s>", 3, 13, $predicate];
-        yield 'column counts tabs as one' => ["\t\t<http://a/s>", 1, 15, $predicate];
-        yield 'long double-quoted object' => ['<http://a/s> <http://a/p> """o""" .', 1, 29, $terminator];
-        yield 'simple literal graph label' => ['<http://a/s> <http://a/p> <http://a/o> "g" .', 1, 40, $terminator];
+        yield 'comment lines are counted' => ["# one\n# two\n<http://a/s>", 3, 13, ...$predicate];
+        yield 'column counts tabs as one' => ["\t\t<http://a/s>", 1, 15, ...$predicate];
+        yield 'long double-quoted object' => ['<http://a/s> <http://a/p> """o""" .', 1, 29, ...$terminator];
+        yield 'simple literal graph label' => ['<http://a/s> <http://a/p> <http://a/o> "g" .', 1, 40, ...$terminator];
         yield 'language-tagged literal graph label' => [
             '<http://a/s> <http://a/p> <http://a/o> "g"@en .',
             1,
             40,
-            $terminator,
+            ...$terminator,
         ];
-        yield 'relative datatype' => ['<http://a/s> <http://a/p> "o"^^<dt> .', 1, 32, 'An IRI must be absolute'];
+        yield 'relative datatype' => ['<http://a/s> <http://a/p> "o"^^<dt> .', 1, 32, ...$relativeIri];
         yield 'literal escape naming a high surrogate' => [
             '<http://a/s> <http://a/p> "\uD800" .',
             1,
             27,
-            'An escape in the literal does not denote a Unicode scalar value',
+            ...$literalEscape,
         ];
         yield 'literal escape naming a low surrogate' => [
             '<http://a/s> <http://a/p> "\uDFFF" .',
             1,
             27,
-            'An escape in the literal does not denote a Unicode scalar value',
+            ...$literalEscape,
         ];
         yield 'literal escape above U+10FFFF' => [
             '<http://a/s> <http://a/p> "\U00110000" .',
             1,
             27,
-            'An escape in the literal does not denote a Unicode scalar value',
+            ...$literalEscape,
         ];
         yield 'literal escape far above U+10FFFF' => [
             '<http://a/s> <http://a/p> "\UFFFFFFFF" .',
             1,
             27,
-            'An escape in the literal does not denote a Unicode scalar value',
+            ...$literalEscape,
         ];
-        yield 'unterminated literal' => ['<http://a/s> <http://a/p> "o .', 1, 27, 'Malformed string literal'];
-        yield 'mismatched quotes' => ["<http://a/s> <http://a/p> \"o' .", 1, 27, 'Malformed string literal'];
-        yield 'bad ECHAR' => ['<http://a/s> <http://a/p> "a\zb" .', 1, 27, 'Malformed string literal'];
-        yield 'bad short UCHAR' => ['<http://a/s> <http://a/p> "\uWXYZ" .', 1, 27, 'Malformed string literal'];
-        yield 'bad long UCHAR' => ['<http://a/s> <http://a/p> "\U0000WXYZ" .', 1, 27, 'Malformed string literal'];
-        yield 'bad language tag' => ['<http://a/s> <http://a/p> "o"@1 .', 1, 30, 'Malformed language tag'];
-        yield 'empty language tag' => ['<http://a/s> <http://a/p> "o"@ .', 1, 30, 'Malformed language tag'];
-        yield 'missing datatype' => ['<http://a/s> <http://a/p> "o"^^ .', 1, 32, "Expected a datatype IRI after '^^'"];
-        yield 'single caret' => ['<http://a/s> <http://a/p> "o"^<http://a/dt> .', 1, 30, $terminator];
+        yield 'unterminated literal' => ['<http://a/s> <http://a/p> "o .', 1, 27, ...$stringLiteral];
+        yield 'mismatched quotes' => ["<http://a/s> <http://a/p> \"o' .", 1, 27, ...$stringLiteral];
+        yield 'bad ECHAR' => ['<http://a/s> <http://a/p> "a\zb" .', 1, 27, ...$stringLiteral];
+        yield 'bad short UCHAR' => ['<http://a/s> <http://a/p> "\uWXYZ" .', 1, 27, ...$stringLiteral];
+        yield 'bad long UCHAR' => ['<http://a/s> <http://a/p> "\U0000WXYZ" .', 1, 27, ...$stringLiteral];
+        yield 'bad language tag' => ['<http://a/s> <http://a/p> "o"@1 .', 1, 30, ...$languageTag];
+        yield 'empty language tag' => ['<http://a/s> <http://a/p> "o"@ .', 1, 30, ...$languageTag];
+        yield 'missing datatype' => [
+            '<http://a/s> <http://a/p> "o"^^ .',
+            1,
+            32,
+            'expected a datatype IRI after "^^"',
+            MalformedNQuadsReason::MissingDatatype,
+        ];
+        yield 'single caret' => ['<http://a/s> <http://a/p> "o"^<http://a/dt> .', 1, 30, ...$terminator];
         yield 'both a language tag and a datatype' => [
             '<http://a/s> <http://a/p> "o"@en^^<http://a/dt> .',
             1,
             33,
-            $terminator,
+            ...$terminator,
         ];
         yield 'langString without a language tag' => [
             '<http://a/s> <http://a/p> "o"^^<http://www.w3.org/1999/02/22-rdf-syntax-ns#langString> .',
             1,
             27,
-            'must have a language tag',
+            'a literal with the datatype rdf:langString must have a language tag',
+            MalformedNQuadsReason::InvalidLiteral,
         ];
-        yield 'column counts code points' => ['<http://a/s> <http://a/p> "é€😀" x .', 1, 33, $terminator];
+        yield 'column counts code points' => ['<http://a/s> <http://a/p> "é€😀" x .', 1, 33, ...$terminator];
         yield 'mixed line endings each count as one line break' => [
             "<http://a/s> <http://a/p> <http://a/o1> .\r\n<http://a/s> <http://a/p> <http://a/o2> .\r"
             . "<http://a/s> <http://a/p> <http://a/o3> .\n\r\n<http://a/s> <http://a/p> <http://a/o4> .\rx",
             6,
             1,
-            $subject,
+            ...$subject,
         ];
     }
 

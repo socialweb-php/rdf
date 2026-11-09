@@ -26,6 +26,7 @@ declare(strict_types=1);
 namespace SocialWeb\Rdf\NQuads;
 
 use SocialWeb\Rdf\Exception\MalformedNQuads;
+use SocialWeb\Rdf\Exception\MalformedNQuadsReason;
 use Throwable;
 
 use function ord;
@@ -226,9 +227,18 @@ final class Scanner
     /**
      * Builds an exception for a problem at the given byte offset, or at the
      * current offset when none is given
+     *
+     * @param MalformedNQuadsReason $reason Which rule the line broke
+     * @param string $detail What was wrong, in words, starting in lowercase
+     * @param int | null $offset The byte offset of the problem, which the
+     *     exception reports as a one-based column in code points
      */
-    public function error(string $reason, ?int $offset = null, ?Throwable $previous = null): MalformedNQuads
-    {
+    public function error(
+        MalformedNQuadsReason $reason,
+        string $detail,
+        ?int $offset = null,
+        ?Throwable $previous = null,
+    ): MalformedNQuads {
         $offset ??= $this->offset;
         $column = 1;
 
@@ -239,6 +249,6 @@ final class Scanner
             }
         }
 
-        return new MalformedNQuads($this->lineNumber, $column, $this->line, $reason, $previous);
+        return new MalformedNQuads($reason, $this->lineNumber, $column, $this->line, $detail, $previous);
     }
 }
