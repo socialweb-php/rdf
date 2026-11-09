@@ -672,4 +672,25 @@ final class ParserTest extends TestCase
 
         $this->fail('Expected MalformedNQuads to be thrown');
     }
+
+    public function testReportsTheCauseOfALiteralError(): void
+    {
+        try {
+            iterator_to_array(
+                Parser::parse('<http://a/s> <http://a/p> "o"^^<' . Rdf::LANG_STRING . '> .'),
+                false,
+            );
+        } catch (MalformedNQuads $exception) {
+            $this->assertSame(MalformedNQuadsReason::InvalidLiteral, $exception->reason);
+            $this->assertInstanceOf(InvalidArgument::class, $exception->getPrevious());
+            $this->assertSame(
+                'A literal with the datatype rdf:langString must have a language tag',
+                $exception->getPrevious()->getMessage(),
+            );
+
+            return;
+        }
+
+        $this->fail('Expected MalformedNQuads to be thrown');
+    }
 }
