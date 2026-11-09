@@ -35,6 +35,8 @@ use function sprintf;
  * The Hash Related Blank Node algorithm of RDFC-1.0 section 4.7
  *
  * @internal
+ *
+ * @link https://www.w3.org/TR/rdf-canon/#hash-related-blank-node RDFC-1.0, Hash Related Blank Node
  */
 final class HashRelatedBlankNode
 {

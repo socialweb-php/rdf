@@ -53,13 +53,13 @@ final readonly class Literal implements Term
      * @param string $lexicalForm The lexical form, which must be valid UTF-8
      * @param Iri | null $datatype The datatype IRI; defaults to xsd:string, or
      *     to rdf:langString when a language tag is given
-     * @param string | null $language A language tag matching the N-Quads LANGTAG
-     *     production; requires the datatype to be rdf:langString
+     * @param string | null $language A language tag matching the N-Quads
+     *     LANGTAG production; requires the datatype to be rdf:langString
      *
      * @throws InvalidArgument if the lexical form is not valid UTF-8, if the
-     *     language tag is malformed, if a language tag is paired with a datatype
-     *     other than rdf:langString, or if rdf:langString is given without a
-     *     language tag
+     *     language tag is malformed, if a language tag is paired with a
+     *     datatype other than rdf:langString, or if rdf:langString is given
+     *     without a language tag
      */
     public function __construct(public string $lexicalForm, ?Iri $datatype = null, ?string $language = null)
     {

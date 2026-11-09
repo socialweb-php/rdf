@@ -34,6 +34,9 @@ namespace SocialWeb\Rdf\Canonicalization;
  * with the prefix `b` while it hashes N-degree quads.
  *
  * @internal
+ *
+ * @link https://www.w3.org/TR/rdf-canon/#bn-issuer-state RDFC-1.0, Blank Node Identifier Issuer State
+ * @link https://www.w3.org/TR/rdf-canon/#issue-identifier RDFC-1.0, Issue Identifier Algorithm
  */
 final class IdentifierIssuer
 {

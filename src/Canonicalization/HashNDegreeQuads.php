@@ -45,6 +45,8 @@ use const SORT_STRING;
  * termination RDFC-1.0 section 7.1 requires.
  *
  * @internal
+ *
+ * @link https://www.w3.org/TR/rdf-canon/#hash-nd-quads RDFC-1.0, Hash N-Degree Quads
  */
 final class HashNDegreeQuads
 {

@@ -28,7 +28,7 @@ namespace SocialWeb\Rdf\Vocabulary;
 /**
  * IRIs from the XML Schema datatypes vocabulary
  *
- * @link https://www.w3.org/TR/xmlschema11-2/
+ * @link https://www.w3.org/TR/xmlschema11-2/ W3C XML Schema Definition Language (XSD) 1.1 Part 2: Datatypes
  */
 final class Xsd
 {

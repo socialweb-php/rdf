@@ -39,6 +39,8 @@ use const SORT_STRING;
  * The Hash First Degree Quads algorithm of RDFC-1.0 section 4.6
  *
  * @internal
+ *
+ * @link https://www.w3.org/TR/rdf-canon/#hash-1d-quads RDFC-1.0, Hash First Degree Quads
  */
 final class HashFirstDegreeQuads
 {

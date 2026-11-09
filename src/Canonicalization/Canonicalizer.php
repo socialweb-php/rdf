@@ -51,7 +51,7 @@ use const SORT_STRING;
  * two isomorphic datasets produce the same canonical N-Quads. This is a
  * transcription of RDFC-1.0 section 4.4.
  *
- * @link https://www.w3.org/TR/rdf-canon/
+ * @link https://www.w3.org/TR/rdf-canon/#canon-algorithm RDFC-1.0, Canonicalization Algorithm
  */
 final class Canonicalizer
 {

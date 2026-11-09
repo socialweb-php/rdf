@@ -47,7 +47,7 @@ namespace SocialWeb\Rdf\NQuads;
  *
  * @internal
  *
- * @link https://www.w3.org/TR/n-quads/#sec-grammar
+ * @link https://www.w3.org/TR/n-quads/#sec-grammar RDF 1.1 N-Quads, Grammar
  */
 final class Grammar
 {
@@ -62,7 +62,7 @@ final class Grammar
      * correction, and the W3C N-Quads syntax test suite rejects labels that
      * contain a colon. This library follows the erratum.
      *
-     * @link https://www.w3.org/2001/sw/wiki/RDF1.1_Errata
+     * @link https://www.w3.org/2001/sw/wiki/RDF1.1_Errata RDF 1.1 Errata
      */
     public const string PN_CHARS_U = self::PN_CHARS_BASE . '_';
 

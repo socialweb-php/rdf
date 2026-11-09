@@ -28,7 +28,7 @@ namespace SocialWeb\Rdf\Vocabulary;
 /**
  * IRIs from the RDF vocabulary
  *
- * @link https://www.w3.org/1999/02/22-rdf-syntax-ns#
+ * @link https://www.w3.org/1999/02/22-rdf-syntax-ns# The RDF Concepts Vocabulary (RDF)
  */
 final class Rdf
 {

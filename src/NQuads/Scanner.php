@@ -137,7 +137,8 @@ final class Scanner
      * @param string $pattern A `*_TOKEN` pattern from {@see Grammar}
      *
      * @return string | null The capturing group, or null if the pattern does
-     *     not match at the current offset, in which case the offset is unchanged
+     *     not match at the current offset, in which case the offset is
+     *     unchanged
      */
     public function take(string $pattern): ?string
     {

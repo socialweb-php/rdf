@@ -38,6 +38,8 @@ use function hash;
  * the hashing steps.
  *
  * @internal
+ *
+ * @link https://www.w3.org/TR/rdf-canon/#canon-state RDFC-1.0, Canonicalization State
  */
 final class CanonicalizationState
 {
