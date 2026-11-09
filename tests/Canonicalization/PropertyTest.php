@@ -19,7 +19,7 @@ use function shuffle;
  * canonicalizing a canonical dataset changes nothing, and relabeling and
  * reordering the input changes nothing
  */
-class PropertyTest extends TestCase
+final class PropertyTest extends TestCase
 {
     #[DataProvider('evaluationTests')]
     public function testCanonicalizingACanonicalDatasetIsANoOp(

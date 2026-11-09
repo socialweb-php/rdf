@@ -7,7 +7,7 @@ namespace SocialWeb\Test\Rdf\Canonicalization;
 use SocialWeb\Rdf\Canonicalization\HashFirstDegreeQuads;
 use SocialWeb\Test\Rdf\TestCase;
 
-class HashFirstDegreeQuadsTest extends TestCase
+final class HashFirstDegreeQuadsTest extends TestCase
 {
     /**
      * The "unique hashes" example from RDFC-1.0 section 4.4.3, whose logged

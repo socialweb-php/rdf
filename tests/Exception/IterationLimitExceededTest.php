@@ -9,7 +9,7 @@ use SocialWeb\Rdf\Exception\IterationLimitExceeded;
 use SocialWeb\Rdf\Exception\RdfException;
 use SocialWeb\Test\Rdf\TestCase;
 
-class IterationLimitExceededTest extends TestCase
+final class IterationLimitExceededTest extends TestCase
 {
     public function testCanBeCaughtAsAnRdfException(): void
     {

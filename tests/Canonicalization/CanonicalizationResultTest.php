@@ -12,7 +12,7 @@ use SocialWeb\Rdf\Literal;
 use SocialWeb\Rdf\Quad;
 use SocialWeb\Test\Rdf\TestCase;
 
-class CanonicalizationResultTest extends TestCase
+final class CanonicalizationResultTest extends TestCase
 {
     public function testExposesTheDatasetAndTheIssuedIdentifiers(): void
     {

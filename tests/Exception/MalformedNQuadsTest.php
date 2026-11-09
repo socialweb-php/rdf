@@ -9,7 +9,7 @@ use SocialWeb\Rdf\Exception\MalformedNQuads;
 use SocialWeb\Rdf\Exception\RdfException;
 use SocialWeb\Test\Rdf\TestCase;
 
-class MalformedNQuadsTest extends TestCase
+final class MalformedNQuadsTest extends TestCase
 {
     public function testCanBeCaughtAsAnRdfException(): void
     {

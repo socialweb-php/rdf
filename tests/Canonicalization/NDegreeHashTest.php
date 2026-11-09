@@ -8,7 +8,7 @@ use SocialWeb\Rdf\Canonicalization\IdentifierIssuer;
 use SocialWeb\Rdf\Canonicalization\NDegreeHash;
 use SocialWeb\Test\Rdf\TestCase;
 
-class NDegreeHashTest extends TestCase
+final class NDegreeHashTest extends TestCase
 {
     public function testCarriesTheHashAndTheIssuer(): void
     {

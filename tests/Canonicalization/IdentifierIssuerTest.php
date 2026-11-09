@@ -7,7 +7,7 @@ namespace SocialWeb\Test\Rdf\Canonicalization;
 use SocialWeb\Rdf\Canonicalization\IdentifierIssuer;
 use SocialWeb\Test\Rdf\TestCase;
 
-class IdentifierIssuerTest extends TestCase
+final class IdentifierIssuerTest extends TestCase
 {
     public function testIssuesIdentifiersFromThePrefixAndACounter(): void
     {

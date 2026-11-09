@@ -8,7 +8,7 @@ use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\DefaultGraph;
 use SocialWeb\Rdf\Iri;
 
-class DefaultGraphTest extends TestCase
+final class DefaultGraphTest extends TestCase
 {
     public function testEqualsAnyOtherDefaultGraph(): void
     {

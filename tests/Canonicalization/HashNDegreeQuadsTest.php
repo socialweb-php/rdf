@@ -15,7 +15,7 @@ use SocialWeb\Test\Rdf\TestCase;
 
 use function str_split;
 
-class HashNDegreeQuadsTest extends TestCase
+final class HashNDegreeQuadsTest extends TestCase
 {
     /**
      * The "double circle" example from RDFC-1.0 section 4.8, whose logged

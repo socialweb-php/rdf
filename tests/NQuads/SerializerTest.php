@@ -18,7 +18,7 @@ use SocialWeb\Rdf\Vocabulary\Rdf;
 use SocialWeb\Rdf\Vocabulary\Xsd;
 use SocialWeb\Test\Rdf\TestCase;
 
-class SerializerTest extends TestCase
+final class SerializerTest extends TestCase
 {
     public function testSerializesATripleInTheDefaultGraph(): void
     {

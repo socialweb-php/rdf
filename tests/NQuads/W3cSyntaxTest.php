@@ -23,7 +23,7 @@ use function str_starts_with;
  *
  * @link https://w3c.github.io/rdf-tests/rdf/rdf11/rdf-n-quads/
  */
-class W3cSyntaxTest extends TestCase
+final class W3cSyntaxTest extends TestCase
 {
     #[DataProvider('positiveSyntaxTests')]
     public function testPositiveSyntax(string $path): void

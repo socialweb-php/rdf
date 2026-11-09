@@ -21,7 +21,7 @@ use SocialWeb\Test\Rdf\TestCase;
 use function iterator_to_array;
 use function str_repeat;
 
-class ParserTest extends TestCase
+final class ParserTest extends TestCase
 {
     #[DataProvider('documentsWithoutStatements')]
     public function testParsesADocumentWithoutStatementsIntoAnEmptyDataset(string $document): void

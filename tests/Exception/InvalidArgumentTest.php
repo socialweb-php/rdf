@@ -9,7 +9,7 @@ use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\RdfException;
 use SocialWeb\Test\Rdf\TestCase;
 
-class InvalidArgumentTest extends TestCase
+final class InvalidArgumentTest extends TestCase
 {
     public function testCanBeCaughtAsAnRdfException(): void
     {

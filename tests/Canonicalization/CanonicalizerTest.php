@@ -15,7 +15,7 @@ use SocialWeb\Rdf\NQuads\Serializer;
 use SocialWeb\Rdf\Quad;
 use SocialWeb\Test\Rdf\TestCase;
 
-class CanonicalizerTest extends TestCase
+final class CanonicalizerTest extends TestCase
 {
     /**
      * Two blank nodes with the same first degree hash, which only N-degree

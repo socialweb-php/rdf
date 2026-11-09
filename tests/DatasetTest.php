@@ -16,7 +16,7 @@ use SocialWeb\Rdf\Term;
 
 use function iterator_to_array;
 
-class DatasetTest extends TestCase
+final class DatasetTest extends TestCase
 {
     public function testStartsEmpty(): void
     {

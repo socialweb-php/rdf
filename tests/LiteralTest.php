@@ -11,7 +11,7 @@ use SocialWeb\Rdf\Literal;
 use SocialWeb\Rdf\Vocabulary\Rdf;
 use SocialWeb\Rdf\Vocabulary\Xsd;
 
-class LiteralTest extends TestCase
+final class LiteralTest extends TestCase
 {
     public function testDefaultsToXsdString(): void
     {

@@ -12,7 +12,7 @@ use SocialWeb\Rdf\NQuads\Grammar;
 
 use function preg_match;
 
-class BlankNodeTest extends TestCase
+final class BlankNodeTest extends TestCase
 {
     #[DataProvider('validIdentifiers')]
     public function testAcceptsValidIdentifiers(string $identifier): void

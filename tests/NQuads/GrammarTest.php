@@ -10,7 +10,7 @@ use SocialWeb\Test\Rdf\TestCase;
 
 use function preg_match;
 
-class GrammarTest extends TestCase
+final class GrammarTest extends TestCase
 {
     #[DataProvider('validBlankNodeLabels')]
     public function testBlankNodeLabelAcceptsValidLabels(string $label): void

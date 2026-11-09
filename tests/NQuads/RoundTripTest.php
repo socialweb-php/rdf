@@ -20,7 +20,7 @@ use function count;
  * Parsing the serialization of a dataset yields an equal dataset, and
  * serializing that dataset yields the same text
  */
-class RoundTripTest extends TestCase
+final class RoundTripTest extends TestCase
 {
     public function testAHandBuiltDatasetSurvivesARoundTrip(): void
     {

@@ -10,7 +10,7 @@ use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Resource;
 use SocialWeb\Rdf\Term;
 
-class IriTest extends TestCase
+final class IriTest extends TestCase
 {
     #[DataProvider('validIris')]
     public function testAcceptsAbsoluteIris(string $value): void

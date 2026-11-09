@@ -10,7 +10,7 @@ use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Literal;
 use SocialWeb\Rdf\Quad;
 
-class QuadTest extends TestCase
+final class QuadTest extends TestCase
 {
     public function testDefaultsToTheDefaultGraph(): void
     {

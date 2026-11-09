@@ -14,7 +14,7 @@ use SocialWeb\Test\Rdf\TestCase;
 
 use function hash;
 
-class HashRelatedBlankNodeTest extends TestCase
+final class HashRelatedBlankNodeTest extends TestCase
 {
     /**
      * The "double circle" example from RDFC-1.0 section 4.8, whose logged

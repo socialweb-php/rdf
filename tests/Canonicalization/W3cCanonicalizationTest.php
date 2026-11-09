@@ -25,7 +25,7 @@ use const SORT_STRING;
  *
  * @link https://w3c.github.io/rdf-canon/tests/
  */
-class W3cCanonicalizationTest extends TestCase
+final class W3cCanonicalizationTest extends TestCase
 {
     #[DataProvider('evaluationTests')]
     public function testEvaluation(string $action, ?string $result, string $hashAlgorithm, int $workFactor): void

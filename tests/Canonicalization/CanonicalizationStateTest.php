@@ -8,7 +8,7 @@ use SocialWeb\Rdf\Canonicalization\CanonicalizationState;
 use SocialWeb\Rdf\NQuads\Serializer;
 use SocialWeb\Test\Rdf\TestCase;
 
-class CanonicalizationStateTest extends TestCase
+final class CanonicalizationStateTest extends TestCase
 {
     public function testStartsEmptyWithACanonicalIssuer(): void
     {

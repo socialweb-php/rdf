@@ -10,7 +10,7 @@ use SocialWeb\Rdf\NQuads\Grammar;
 use SocialWeb\Rdf\NQuads\Scanner;
 use SocialWeb\Test\Rdf\TestCase;
 
-class ScannerTest extends TestCase
+final class ScannerTest extends TestCase
 {
     public function testStartsAtTheBeginningOfTheLine(): void
     {
