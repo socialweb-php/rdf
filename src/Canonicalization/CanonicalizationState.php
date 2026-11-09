@@ -25,15 +25,13 @@ declare(strict_types=1);
 
 namespace SocialWeb\Rdf\Canonicalization;
 
-use SocialWeb\Rdf\NQuads\Serializer;
 use SocialWeb\Rdf\Quad;
 
 use function hash;
 
 /**
  * The canonicalization state of RDFC-1.0 section 4.2, plus the hash
- * algorithm, the serializer, a cache of first degree hashes, and the deep
- * iteration budget
+ * algorithm, a cache of first degree hashes, and the deep iteration budget
  *
  * One instance is created for each call to the canonicalizer and shared by
  * the hashing steps.
@@ -77,7 +75,7 @@ final class CanonicalizationState
 
     public int $remainingDeepIterations = 0;
 
-    public function __construct(public readonly string $hashAlgorithm, public readonly Serializer $serializer)
+    public function __construct(public readonly string $hashAlgorithm)
     {
         $this->canonicalIssuer = new IdentifierIssuer('c14n');
     }

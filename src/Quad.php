@@ -25,6 +25,12 @@ declare(strict_types=1);
 
 namespace SocialWeb\Rdf;
 
+use SocialWeb\Rdf\Exception\InvalidArgument;
+use SocialWeb\Rdf\Vocabulary\Xsd;
+
+use function sprintf;
+use function strtr;
+
 /**
  * An RDF statement with its graph name: subject, predicate, object, and graph
  *
@@ -35,6 +41,57 @@ namespace SocialWeb\Rdf;
  */
 final readonly class Quad
 {
+    /**
+     * The escaping table for STRING_LITERAL_QUOTE from RDFC-1.0 Appendix A
+     *
+     * ECHAR for backspace, tab, line feed, form feed, carriage return, the
+     * quotation mark, and the backslash; UCHAR with four uppercase hexadecimal
+     * digits for the other C0 controls, DEL, and the two code points below
+     * U+10000 that the XML 1.1 Char production excludes. Surrogates cannot
+     * occur in a valid UTF-8 lexical form. Every other code point is written
+     * natively. URDNA2015 differs from RDFC-1.0 only in this table; a legacy
+     * mode would be an alternative table selected in {@see self::escape()}.
+     */
+    private const array ESCAPES = [
+        "\x00" => '\u0000',
+        "\x01" => '\u0001',
+        "\x02" => '\u0002',
+        "\x03" => '\u0003',
+        "\x04" => '\u0004',
+        "\x05" => '\u0005',
+        "\x06" => '\u0006',
+        "\x07" => '\u0007',
+        "\x08" => '\b',
+        "\x09" => '\t',
+        "\x0A" => '\n',
+        "\x0B" => '\u000B',
+        "\x0C" => '\f',
+        "\x0D" => '\r',
+        "\x0E" => '\u000E',
+        "\x0F" => '\u000F',
+        "\x10" => '\u0010',
+        "\x11" => '\u0011',
+        "\x12" => '\u0012',
+        "\x13" => '\u0013',
+        "\x14" => '\u0014',
+        "\x15" => '\u0015',
+        "\x16" => '\u0016',
+        "\x17" => '\u0017',
+        "\x18" => '\u0018',
+        "\x19" => '\u0019',
+        "\x1A" => '\u001A',
+        "\x1B" => '\u001B',
+        "\x1C" => '\u001C',
+        "\x1D" => '\u001D',
+        "\x1E" => '\u001E',
+        "\x1F" => '\u001F',
+        '"' => '\"',
+        '\\' => '\\\\',
+        "\x7F" => '\u007F',
+        "\u{FFFE}" => '\uFFFE',
+        "\u{FFFF}" => '\uFFFF',
+    ];
+
     public function __construct(
         public Resource $subject,
         public Iri $predicate,
@@ -49,5 +106,70 @@ final readonly class Quad
             && $this->predicate->equals($other->predicate)
             && $this->object->equals($other->object)
             && $this->graph->equals($other->graph);
+    }
+
+    /**
+     * Writes the quad as one line of canonical N-Quads, including its
+     * terminating line feed
+     *
+     * The output follows Appendix A of RDF Dataset Canonicalization
+     * (RDFC-1.0): a single space after the subject, predicate, object, and
+     * graph label, no datatype on xsd:string literals, a fixed escaping table
+     * for literals, and a line feed at the end. Every quad the library writes,
+     * including every quad the canonicalizer hashes, passes through this
+     * method.
+     *
+     * @link https://www.w3.org/TR/rdf-canon/#canonical-quads RDFC-1.0, A Canonical form of N-Quads
+     *
+     * @throws InvalidArgument if the quad holds a term that is not one of this
+     *     library's own term classes
+     */
+    public function toNQuads(): string
+    {
+        $line = self::term($this->subject) . ' '
+            . self::term($this->predicate) . ' '
+            . self::term($this->object) . ' ';
+
+        if (!$this->graph instanceof DefaultGraph) {
+            $line .= self::term($this->graph) . ' ';
+        }
+
+        return $line . ".\n";
+    }
+
+    private static function term(Term | GraphName $term): string
+    {
+        return match (true) {
+            $term instanceof Iri => '<' . $term->value . '>',
+            $term instanceof BlankNode => '_:' . $term->identifier,
+            $term instanceof Literal => self::literal($term),
+            default => throw new InvalidArgument(sprintf('Unsupported term type %s', $term::class)),
+        };
+    }
+
+    private static function literal(Literal $literal): string
+    {
+        $output = '"' . self::escape($literal->lexicalForm) . '"';
+
+        if ($literal->language !== null) {
+            return $output . '@' . $literal->language;
+        }
+
+        if ($literal->datatype->value === Xsd::STRING) {
+            return $output;
+        }
+
+        return $output . '^^<' . $literal->datatype->value . '>';
+    }
+
+    /**
+     * Applies the escaping table to a lexical form
+     *
+     * All escaping lives here so that an alternative table can be added as
+     * one option without a second code path.
+     */
+    private static function escape(string $lexicalForm): string
+    {
+        return strtr($lexicalForm, self::ESCAPES);
     }
 }

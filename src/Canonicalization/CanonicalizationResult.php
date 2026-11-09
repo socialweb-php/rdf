@@ -26,7 +26,6 @@ declare(strict_types=1);
 namespace SocialWeb\Rdf\Canonicalization;
 
 use SocialWeb\Rdf\Dataset;
-use SocialWeb\Rdf\NQuads\Serializer;
 
 use function implode;
 use function sort;
@@ -64,11 +63,10 @@ final readonly class CanonicalizationResult
      */
     public function toNQuads(): string
     {
-        $serializer = new Serializer();
         $lines = [];
 
         foreach ($this->dataset as $quad) {
-            $lines[] = $serializer->serializeQuad($quad);
+            $lines[] = $quad->toNQuads();
         }
 
         sort($lines, SORT_STRING);

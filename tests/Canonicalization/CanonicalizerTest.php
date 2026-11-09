@@ -10,10 +10,10 @@ use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\IterationLimitExceeded;
 use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Literal;
-use SocialWeb\Rdf\NQuads\Parser;
-use SocialWeb\Rdf\NQuads\Serializer;
 use SocialWeb\Rdf\Quad;
 use SocialWeb\Test\Rdf\TestCase;
+
+use function iterator_to_array;
 
 final class CanonicalizerTest extends TestCase
 {
@@ -71,13 +71,13 @@ final class CanonicalizerTest extends TestCase
         );
         $this->assertSame([], $result->issuedIdentifiers());
         $this->assertCount(2, $result->dataset());
-        $this->assertTrue($result->dataset()->toArray()[0]->equals($first));
-        $this->assertTrue($result->dataset()->toArray()[1]->equals($second));
+        $this->assertTrue(iterator_to_array($result->dataset())[0]->equals($first));
+        $this->assertTrue(iterator_to_array($result->dataset())[1]->equals($second));
     }
 
     public function testIssuesCanonicalIdentifiersInFirstDegreeHashOrder(): void
     {
-        $dataset = (new Parser())->parse("_:b <http://a/p> <http://a/o> .\n_:a <http://a/p> _:b .\n");
+        $dataset = Dataset::fromNQuads("_:b <http://a/p> <http://a/o> .\n_:a <http://a/p> _:b .\n");
 
         $result = (new Canonicalizer())->canonicalize($dataset);
 
@@ -85,14 +85,14 @@ final class CanonicalizerTest extends TestCase
         $this->assertSame(['a' => 'c14n0', 'b' => 'c14n1'], $result->issuedIdentifiers());
         $this->assertSame(
             "_:c14n1 <http://a/p> <http://a/o> .\n_:c14n0 <http://a/p> _:c14n1 .\n",
-            (new Serializer())->serialize($result->dataset()),
+            $result->dataset()->toNQuads(),
         );
     }
 
     public function testListsAQuadOnceForABlankNodeItMentionsTwice(): void
     {
         // Were the self-referencing quad hashed twice, x would sort after y.
-        $dataset = (new Parser())->parse("_:x <http://a/p> _:x .\n_:y <http://a/p> <http://a/o> .\n");
+        $dataset = Dataset::fromNQuads("_:x <http://a/p> _:x .\n_:y <http://a/p> <http://a/o> .\n");
 
         $result = (new Canonicalizer())->canonicalize($dataset);
 
@@ -101,7 +101,7 @@ final class CanonicalizerTest extends TestCase
 
     public function testHandlesABlankNodeInGraphNamePosition(): void
     {
-        $dataset = (new Parser())->parse("_:a <http://a/p> \"x\" _:g .\n_:g <http://a/p> <http://a/o> .\n");
+        $dataset = Dataset::fromNQuads("_:a <http://a/p> \"x\" _:g .\n_:g <http://a/p> <http://a/o> .\n");
 
         $result = (new Canonicalizer())->canonicalize($dataset);
 
@@ -114,7 +114,7 @@ final class CanonicalizerTest extends TestCase
 
     public function testHandlesNumericBlankNodeLabels(): void
     {
-        $dataset = (new Parser())->parse("_:0 <http://a/p> _:1 .\n_:1 <http://a/p> <http://a/o> .\n");
+        $dataset = Dataset::fromNQuads("_:0 <http://a/p> _:1 .\n_:1 <http://a/p> <http://a/o> .\n");
 
         $result = (new Canonicalizer())->canonicalize($dataset);
 
@@ -124,7 +124,7 @@ final class CanonicalizerTest extends TestCase
 
     public function testResolvesSharedHashesWithNDegreeHashing(): void
     {
-        $dataset = (new Parser())->parse(
+        $dataset = Dataset::fromNQuads(
             "_:e0 <http://a/p> _:e1 .\n_:e0 <http://a/p> _:e2 .\n_:e1 <http://a/p> _:e3 .\n"
             . "_:e2 <http://a/p> _:e4 .\n_:e3 <http://a/q> \"x\" .\n_:e4 <http://a/q> \"y\" .\n",
         );
@@ -147,13 +147,13 @@ final class CanonicalizerTest extends TestCase
         $this->expectException(IterationLimitExceeded::class);
         $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 2');
 
-        (new Canonicalizer())->canonicalize((new Parser())->parse(self::CIRCLE));
+        (new Canonicalizer())->canonicalize(Dataset::fromNQuads(self::CIRCLE));
     }
 
     public function testAWorkFactorOfZeroDisablesDeepIterations(): void
     {
         $canonicalizer = new Canonicalizer('sha256', 0);
-        $tree = (new Parser())->parse("_:a <http://a/p> _:b .\n_:b <http://a/p> <http://a/o> .\n");
+        $tree = Dataset::fromNQuads("_:a <http://a/p> _:b .\n_:b <http://a/p> <http://a/o> .\n");
 
         $this->assertSame(
             "_:c14n0 <http://a/p> _:c14n1 .\n_:c14n1 <http://a/p> <http://a/o> .\n",
@@ -163,12 +163,12 @@ final class CanonicalizerTest extends TestCase
         $this->expectException(IterationLimitExceeded::class);
         $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 0');
 
-        $canonicalizer->canonicalize((new Parser())->parse(self::CIRCLE));
+        $canonicalizer->canonicalize(Dataset::fromNQuads(self::CIRCLE));
     }
 
     public function testAWorkFactorOfTwoAllowsTheSquareOfTheNonUniqueCount(): void
     {
-        $result = (new Canonicalizer('sha256', 2))->canonicalize((new Parser())->parse(self::CIRCLE));
+        $result = (new Canonicalizer('sha256', 2))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
 
         $this->assertSame(self::CIRCLE_CANONICAL, $result->toNQuads());
         $this->assertSame(['a' => 'c14n0', 'b' => 'c14n1'], $result->issuedIdentifiers());
@@ -176,14 +176,14 @@ final class CanonicalizerTest extends TestCase
 
     public function testAnExplicitLimitOverridesTheWorkFactor(): void
     {
-        $result = (new Canonicalizer('sha256', 0, 4))->canonicalize((new Parser())->parse(self::CIRCLE));
+        $result = (new Canonicalizer('sha256', 0, 4))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
 
         $this->assertSame(self::CIRCLE_CANONICAL, $result->toNQuads());
 
         $this->expectException(IterationLimitExceeded::class);
         $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 3');
 
-        (new Canonicalizer('sha256', 3, 3))->canonicalize((new Parser())->parse(self::CIRCLE));
+        (new Canonicalizer('sha256', 3, 3))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
     }
 
     public function testAcceptsAnExplicitLimitOfZero(): void
@@ -191,7 +191,7 @@ final class CanonicalizerTest extends TestCase
         $this->expectException(IterationLimitExceeded::class);
         $this->expectExceptionMessageIsOrContains('Canonicalization exceeded the deep iteration limit of 0');
 
-        (new Canonicalizer('sha256', 1, 0))->canonicalize((new Parser())->parse(self::CIRCLE));
+        (new Canonicalizer('sha256', 1, 0))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
     }
 
     public function testSkipsGroupMembersThatAlreadyHaveACanonicalIdentifier(): void
@@ -200,7 +200,7 @@ final class CanonicalizerTest extends TestCase
         // {w1, w2} first reaches x and y and issues them canonical
         // identifiers, so when the group {x, y, z1, z2} is reached, x and y
         // must be skipped and z1 and z2 still ordered by their hashes.
-        $dataset = (new Parser())->parse(
+        $dataset = Dataset::fromNQuads(
             "_:w1 <http://a/p> _:x .\n_:w2 <http://a/p> _:y .\n_:u <http://a/p> _:z1 .\n_:u <http://a/p> _:z2 .\n"
             . "_:x <http://a/s> _:m3 .\n_:y <http://a/s> _:m4 .\n_:z1 <http://a/s> _:m1 .\n_:z2 <http://a/s> _:m2 .\n"
             . "_:m1 <http://a/r> \"2\" .\n_:m2 <http://a/r> \"1\" .\n"
@@ -245,14 +245,14 @@ final class CanonicalizerTest extends TestCase
     public function testTreatsAnOverflowingLimitAsUnlimited(): void
     {
         // 2 ** 70 does not fit in an integer.
-        $result = (new Canonicalizer('sha256', 70))->canonicalize((new Parser())->parse(self::CIRCLE));
+        $result = (new Canonicalizer('sha256', 70))->canonicalize(Dataset::fromNQuads(self::CIRCLE));
 
         $this->assertSame(self::CIRCLE_CANONICAL, $result->toNQuads());
     }
 
     public function testUsesTheRequestedHashAlgorithm(): void
     {
-        $dataset = (new Parser())->parse(self::DIAMOND);
+        $dataset = Dataset::fromNQuads(self::DIAMOND);
 
         $sha256 = (new Canonicalizer())->canonicalize($dataset);
         $sha384 = (new Canonicalizer('sha384'))->canonicalize($dataset);
@@ -278,7 +278,7 @@ final class CanonicalizerTest extends TestCase
     public function testCanBeReused(): void
     {
         $canonicalizer = new Canonicalizer();
-        $dataset = (new Parser())->parse(self::DIAMOND);
+        $dataset = Dataset::fromNQuads(self::DIAMOND);
 
         $first = $canonicalizer->canonicalize($dataset);
         $second = $canonicalizer->canonicalize($dataset);

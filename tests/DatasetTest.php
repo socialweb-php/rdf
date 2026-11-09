@@ -8,6 +8,8 @@ use ArrayIterator;
 use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\InvalidArgument;
+use SocialWeb\Rdf\Exception\MalformedNQuads;
+use SocialWeb\Rdf\Exception\MalformedNQuadsReason;
 use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Literal;
 use SocialWeb\Rdf\Quad;
@@ -23,7 +25,6 @@ final class DatasetTest extends TestCase
         $dataset = new Dataset();
 
         $this->assertCount(0, $dataset);
-        $this->assertSame([], $dataset->toArray());
         $this->assertSame([], iterator_to_array($dataset));
     }
 
@@ -39,7 +40,6 @@ final class DatasetTest extends TestCase
         $dataset->add($second);
 
         $this->assertCount(3, $dataset);
-        $this->assertSame([$third, $first, $second], $dataset->toArray());
         $this->assertSame([$third, $first, $second], iterator_to_array($dataset));
     }
 
@@ -50,7 +50,7 @@ final class DatasetTest extends TestCase
 
         $dataset = new Dataset(new ArrayIterator([$first, $second]));
 
-        $this->assertSame([$first, $second], $dataset->toArray());
+        $this->assertSame([$first, $second], iterator_to_array($dataset));
     }
 
     public function testAddingAnEqualQuadIsANoOp(): void
@@ -62,7 +62,7 @@ final class DatasetTest extends TestCase
         $dataset->add($duplicate);
 
         $this->assertCount(1, $dataset);
-        $this->assertSame($original, $dataset->toArray()[0]);
+        $this->assertSame($original, iterator_to_array($dataset)[0]);
     }
 
     public function testContainsUsesQuadEquality(): void
@@ -84,7 +84,7 @@ final class DatasetTest extends TestCase
         $dataset->remove(new Quad(new Iri('a:s'), new Iri('a:p'), new Literal('2')));
         $dataset->remove(new Quad(new Iri('a:s'), new Iri('a:p'), new Literal('missing')));
 
-        $this->assertSame([$keep], $dataset->toArray());
+        $this->assertSame([$keep], iterator_to_array($dataset));
     }
 
     public function testDistinguishesQuadsWhoseComponentsConcatenateIdentically(): void
@@ -159,5 +159,79 @@ final class DatasetTest extends TestCase
         $this->expectExceptionMessageIsOrContains('Unsupported term type');
 
         (new Dataset())->add(new Quad($foreign, new Iri('a:p'), new Iri('a:o')));
+    }
+
+    public function testFromNQuadsParsesEveryStatementInDocumentOrder(): void
+    {
+        $dataset = Dataset::fromNQuads(
+            "<http://a/s> <http://a/p> <http://a/o2> .\n"
+            . "# a comment\n"
+            . "<http://a/s> <http://a/p> \"o1\"@en-US <http://a/g> .\n"
+            . "_:b0 <http://a/p> \"1\"^^<http://www.w3.org/2001/XMLSchema#integer> .\n",
+        );
+
+        $this->assertCount(3, $dataset);
+        $this->assertTrue(
+            $dataset->contains(new Quad(new Iri('http://a/s'), new Iri('http://a/p'), new Iri('http://a/o2'))),
+        );
+        $this->assertTrue($dataset->contains(new Quad(
+            new Iri('http://a/s'),
+            new Iri('http://a/p'),
+            new Literal('o1', language: 'en-us'),
+            new Iri('http://a/g'),
+        )));
+        $this->assertTrue($dataset->contains(new Quad(
+            new BlankNode('b0'),
+            new Iri('http://a/p'),
+            new Literal('1', new Iri('http://www.w3.org/2001/XMLSchema#integer')),
+        )));
+    }
+
+    public function testFromNQuadsCollapsesDuplicateStatements(): void
+    {
+        $document = "<http://a/s> <http://a/p> <http://a/o> .\n<http://a/s> <http://a/p> <http://a/o> .\n";
+
+        $this->assertCount(1, Dataset::fromNQuads($document));
+    }
+
+    public function testFromNQuadsParsesAnEmptyDocumentIntoAnEmptyDataset(): void
+    {
+        $this->assertCount(0, Dataset::fromNQuads(''));
+    }
+
+    public function testFromNQuadsRaisesMalformedNQuadsForABrokenLine(): void
+    {
+        try {
+            Dataset::fromNQuads("<http://a/s> <http://a/p> <http://a/o> .\n<http://a/s> <http://a/p>\n");
+        } catch (MalformedNQuads $exception) {
+            $this->assertSame(MalformedNQuadsReason::InvalidObject, $exception->reason);
+            $this->assertSame(2, $exception->lineNumber);
+            $this->assertSame(26, $exception->columnNumber);
+
+            return;
+        }
+
+        $this->fail('Expected MalformedNQuads to be thrown');
+    }
+
+    public function testToNQuadsWritesEveryQuadInInsertionOrderWithOneLineFeedPerQuad(): void
+    {
+        $dataset = new Dataset([
+            new Quad(new Iri('http://a/s'), new Iri('http://a/p'), new Iri('http://a/o2')),
+            new Quad(new Iri('http://a/s'), new Iri('http://a/p'), new Iri('http://a/o1')),
+            new Quad(new Iri('http://a/s'), new Iri('http://a/p'), new Literal('o'), new BlankNode('g')),
+        ]);
+
+        $this->assertSame(
+            "<http://a/s> <http://a/p> <http://a/o2> .\n"
+            . "<http://a/s> <http://a/p> <http://a/o1> .\n"
+            . "<http://a/s> <http://a/p> \"o\" _:g .\n",
+            $dataset->toNQuads(),
+        );
+    }
+
+    public function testToNQuadsWritesAnEmptyDatasetAsAnEmptyString(): void
+    {
+        $this->assertSame('', (new Dataset())->toNQuads());
     }
 }

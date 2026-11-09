@@ -30,6 +30,8 @@ use Countable;
 use Iterator;
 use IteratorAggregate;
 use SocialWeb\Rdf\Exception\InvalidArgument;
+use SocialWeb\Rdf\Exception\MalformedNQuads;
+use SocialWeb\Rdf\NQuads\Parser;
 
 use function array_values;
 use function count;
@@ -64,6 +66,22 @@ final class Dataset implements Countable, IteratorAggregate
         foreach ($quads as $quad) {
             $this->add($quad);
         }
+    }
+
+    /**
+     * Parses an N-Quads 1.1 document into a dataset
+     *
+     * Duplicate statements collapse into one quad, as they do in any dataset.
+     * The first line that does not conform to the grammar raises
+     * {@see MalformedNQuads} with its line and column; nothing is skipped or
+     * repaired.
+     *
+     * @throws MalformedNQuads if a line does not conform to the N-Quads
+     *     grammar
+     */
+    public static function fromNQuads(string $document): self
+    {
+        return new self(Parser::parse($document));
     }
 
     /**
@@ -104,6 +122,25 @@ final class Dataset implements Countable, IteratorAggregate
     public function getIterator(): Iterator
     {
         return new ArrayIterator(array_values($this->quads));
+    }
+
+    /**
+     * Writes every quad in dataset order, one per line, in the canonical form
+     * of N-Quads
+     *
+     * The lines are in insertion order; sorting them is the canonicalizer's
+     * job, and {@see Canonicalization\CanonicalizationResult::toNQuads()}
+     * does it.
+     */
+    public function toNQuads(): string
+    {
+        $output = '';
+
+        foreach ($this->quads as $quad) {
+            $output .= $quad->toNQuads();
+        }
+
+        return $output;
     }
 
     /**

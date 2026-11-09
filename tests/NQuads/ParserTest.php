@@ -25,9 +25,9 @@ use function str_repeat;
 final class ParserTest extends TestCase
 {
     #[DataProvider('documentsWithoutStatements')]
-    public function testParsesADocumentWithoutStatementsIntoAnEmptyDataset(string $document): void
+    public function testParsesADocumentWithoutStatementsIntoNoQuads(string $document): void
     {
-        $this->assertCount(0, (new Parser())->parse($document));
+        $this->assertSame([], iterator_to_array(Parser::parse($document), false));
     }
 
     /**
@@ -46,7 +46,7 @@ final class ParserTest extends TestCase
 
     public function testParsesATripleIntoTheDefaultGraph(): void
     {
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> <http://a/o> .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> <http://a/o> .'), false);
 
         $this->assertCount(1, $quads);
         $this->assertTrue(new Quad(
@@ -59,7 +59,7 @@ final class ParserTest extends TestCase
 
     public function testParsesAQuadWithAnIriGraphLabel(): void
     {
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> <http://a/o> <http://a/g> .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> <http://a/o> <http://a/g> .'), false);
 
         $this->assertTrue(new Quad(
             new Iri('http://a/s'),
@@ -71,7 +71,7 @@ final class ParserTest extends TestCase
 
     public function testParsesAQuadWithABlankNodeGraphLabel(): void
     {
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> <http://a/o> _:g .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> <http://a/o> _:g .'), false);
 
         $this->assertTrue(new Quad(
             new Iri('http://a/s'),
@@ -84,7 +84,7 @@ final class ParserTest extends TestCase
     #[DataProvider('blankNodeLabels')]
     public function testPreservesBlankNodeLabelsExactly(string $label): void
     {
-        $quads = (new Parser())->parse("_:$label <http://a/p> _:$label .")->toArray();
+        $quads = iterator_to_array(Parser::parse("_:$label <http://a/p> _:$label ."), false);
 
         $this->assertInstanceOf(BlankNode::class, $quads[0]->subject);
         $this->assertSame($label, $quads[0]->subject->identifier);
@@ -108,7 +108,7 @@ final class ParserTest extends TestCase
 
     public function testParsesASimpleLiteralAsXsdString(): void
     {
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "Alice" .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> "Alice" .'), false);
 
         $this->assertTrue(new Literal('Alice')->equals($quads[0]->object));
         $this->assertInstanceOf(Literal::class, $quads[0]->object);
@@ -117,7 +117,7 @@ final class ParserTest extends TestCase
 
     public function testParsesALanguageTaggedLiteral(): void
     {
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "Alice"@en-US .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> "Alice"@en-US .'), false);
 
         $this->assertInstanceOf(Literal::class, $quads[0]->object);
         $this->assertSame('Alice', $quads[0]->object->lexicalForm);
@@ -127,9 +127,9 @@ final class ParserTest extends TestCase
 
     public function testParsesADatatypedLiteral(): void
     {
-        $quads = (new Parser())->parse(
+        $quads = iterator_to_array(Parser::parse(
             '<http://a/s> <http://a/p> "42"^^<http://www.w3.org/2001/XMLSchema#integer> .',
-        )->toArray();
+        ), false);
 
         $this->assertTrue(new Literal('42', new Iri('http://www.w3.org/2001/XMLSchema#integer'))
             ->equals($quads[0]->object));
@@ -137,16 +137,16 @@ final class ParserTest extends TestCase
 
     public function testParsesAnExplicitXsdStringDatatype(): void
     {
-        $quads = (new Parser())->parse(
+        $quads = iterator_to_array(Parser::parse(
             '<http://a/s> <http://a/p> "42"^^<http://www.w3.org/2001/XMLSchema#string> .',
-        )->toArray();
+        ), false);
 
         $this->assertTrue(new Literal('42')->equals($quads[0]->object));
     }
 
     public function testParsesAnEmptyLiteral(): void
     {
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "" .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> "" .'), false);
 
         $this->assertTrue(new Literal('')->equals($quads[0]->object));
     }
@@ -154,7 +154,7 @@ final class ParserTest extends TestCase
     #[DataProvider('escapedLiterals')]
     public function testDecodesEscapesInLiterals(string $encoded, string $decoded): void
     {
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "' . $encoded . '" .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> "' . $encoded . '" .'), false);
 
         $this->assertInstanceOf(Literal::class, $quads[0]->object);
         $this->assertSame($decoded, $quads[0]->object->lexicalForm);
@@ -191,7 +191,7 @@ final class ParserTest extends TestCase
     #[DataProvider('utf8Boundaries')]
     public function testEncodesEveryUtf8SequenceLengthCorrectly(string $encoded, string $decoded): void
     {
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "' . $encoded . '" .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> "' . $encoded . '" .'), false);
 
         $this->assertInstanceOf(Literal::class, $quads[0]->object);
         $this->assertSame($decoded, $quads[0]->object->lexicalForm);
@@ -217,9 +217,9 @@ final class ParserTest extends TestCase
 
     public function testDecodesEscapesInIris(): void
     {
-        $quads = (new Parser())->parse(
+        $quads = iterator_to_array(Parser::parse(
             '<http://a/\u00E9> <http://a/\U0001F600> <http://a/\u00E9\u20AC> .',
-        )->toArray();
+        ), false);
 
         $this->assertTrue(new Quad(
             new Iri('http://a/é'),
@@ -235,7 +235,7 @@ final class ParserTest extends TestCase
             . '<http://a/s> <http://a/p> <http://a/o2> .' . $eol
             . '<http://a/s> <http://a/p> <http://a/o3> .' . $eol;
 
-        $this->assertCount(3, (new Parser())->parse($document));
+        $this->assertCount(3, iterator_to_array(Parser::parse($document), false));
     }
 
     /**
@@ -250,7 +250,7 @@ final class ParserTest extends TestCase
 
     public function testDoesNotRequireAFinalLineEnding(): void
     {
-        $this->assertCount(1, (new Parser())->parse('<http://a/s> <http://a/p> <http://a/o> .'));
+        $this->assertCount(1, iterator_to_array(Parser::parse('<http://a/s> <http://a/p> <http://a/o> .'), false));
     }
 
     public function testAcceptsMixedLineEndingsInOneDocument(): void
@@ -263,7 +263,7 @@ final class ParserTest extends TestCase
 
         $objects = [];
 
-        foreach ((new Parser())->parse($document) as $quad) {
+        foreach (Parser::parse($document) as $quad) {
             $this->assertInstanceOf(Iri::class, $quad->object);
             $objects[] = $quad->object->value;
         }
@@ -274,7 +274,7 @@ final class ParserTest extends TestCase
     #[DataProvider('whitespaceVariations')]
     public function testAcceptsWhitespaceAndCommentsAroundTerms(string $document): void
     {
-        $quads = (new Parser())->parse($document)->toArray();
+        $quads = iterator_to_array(Parser::parse($document), false);
 
         $this->assertCount(1, $quads);
         $this->assertTrue(new Quad(
@@ -304,35 +304,28 @@ final class ParserTest extends TestCase
 
     public function testBlankNodeLabelEndsBeforeTheStatementTerminator(): void
     {
-        $quads = (new Parser())->parse('_:s <http://a/p> _:o.')->toArray();
+        $quads = iterator_to_array(Parser::parse('_:s <http://a/p> _:o.'), false);
 
         $this->assertTrue(new Quad(new BlankNode('s'), new Iri('http://a/p'), new BlankNode('o'))
             ->equals($quads[0]));
     }
 
-    public function testParseCollapsesDuplicateStatements(): void
-    {
-        $document = "<http://a/s> <http://a/p> <http://a/o> .\n<http://a/s> <http://a/p> <http://a/o> .\n";
-
-        $this->assertCount(1, (new Parser())->parse($document));
-    }
-
-    public function testParseQuadsYieldsEveryStatementInOrder(): void
+    public function testYieldsEveryStatementInOrder(): void
     {
         $document = "<http://a/s> <http://a/p> <http://a/o2> .\n"
             . "<http://a/s> <http://a/p> <http://a/o1> .\n"
             . "<http://a/s> <http://a/p> <http://a/o2> .\n";
 
-        $quads = iterator_to_array((new Parser())->parseQuads($document), false);
+        $quads = iterator_to_array(Parser::parse($document), false);
 
         $this->assertCount(3, $quads);
         $this->assertTrue($quads[0]->equals($quads[2]));
         $this->assertFalse($quads[0]->equals($quads[1]));
     }
 
-    public function testParseQuadsYieldsStatementsBeforeReachingALaterError(): void
+    public function testYieldsStatementsBeforeReachingALaterError(): void
     {
-        $quads = (new Parser())->parseQuads("<http://a/s> <http://a/p> <http://a/o> .\nnot a statement\n");
+        $quads = Parser::parse("<http://a/s> <http://a/p> <http://a/o> .\nnot a statement\n");
 
         $this->assertInstanceOf(Generator::class, $quads);
         $first = $quads->current();
@@ -349,7 +342,7 @@ final class ParserTest extends TestCase
     {
         $lexicalForm = str_repeat('a', 100000);
 
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "' . $lexicalForm . '" .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> "' . $lexicalForm . '" .'), false);
 
         $this->assertInstanceOf(Literal::class, $quads[0]->object);
         $this->assertSame($lexicalForm, $quads[0]->object->lexicalForm);
@@ -359,7 +352,7 @@ final class ParserTest extends TestCase
     {
         $value = 'http://a/' . str_repeat('x', 100000);
 
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> <' . $value . '> .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> <' . $value . '> .'), false);
 
         $this->assertInstanceOf(Iri::class, $quads[0]->object);
         $this->assertSame($value, $quads[0]->object->value);
@@ -370,7 +363,7 @@ final class ParserTest extends TestCase
         $encoded = str_repeat('\"', 20000) . str_repeat('\u00E9', 20000);
         $decoded = str_repeat('"', 20000) . str_repeat('é', 20000);
 
-        $quads = (new Parser())->parse('<http://a/s> <http://a/p> "' . $encoded . '" .')->toArray();
+        $quads = iterator_to_array(Parser::parse('<http://a/s> <http://a/p> "' . $encoded . '" .'), false);
 
         $this->assertInstanceOf(Literal::class, $quads[0]->object);
         $this->assertSame($decoded, $quads[0]->object->lexicalForm);
@@ -381,7 +374,7 @@ final class ParserTest extends TestCase
         $document = '<http://a/s> <http://a/p> "' . str_repeat('a', 100000) . ' .';
 
         try {
-            (new Parser())->parse($document);
+            iterator_to_array(Parser::parse($document), false);
         } catch (MalformedNQuads $exception) {
             $this->assertSame(1, $exception->lineNumber);
             $this->assertSame(27, $exception->columnNumber);
@@ -403,7 +396,7 @@ final class ParserTest extends TestCase
         MalformedNQuadsReason $reason,
     ): void {
         try {
-            (new Parser())->parse($document);
+            iterator_to_array(Parser::parse($document), false);
         } catch (MalformedNQuads $exception) {
             $this->assertSame($lineNumber, $exception->lineNumber, 'line number');
             $this->assertSame($columnNumber, $exception->columnNumber, 'column number');
@@ -665,7 +658,10 @@ final class ParserTest extends TestCase
     public function testReportsTheOffendingLineAndTheCauseOfATermError(): void
     {
         try {
-            (new Parser())->parse("<http://a/s> <http://a/p> <http://a/o> .\n<http://a/s> <http://a/p> <o> .");
+            iterator_to_array(
+                Parser::parse("<http://a/s> <http://a/p> <http://a/o> .\n<http://a/s> <http://a/p> <o> ."),
+                false,
+            );
         } catch (MalformedNQuads $exception) {
             $this->assertSame('<http://a/s> <http://a/p> <o> .', $exception->offendingLine);
             $this->assertInstanceOf(InvalidArgument::class, $exception->getPrevious());

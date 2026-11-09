@@ -29,7 +29,6 @@ use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\IterationLimitExceeded;
-use SocialWeb\Rdf\NQuads\Serializer;
 use SocialWeb\Rdf\Quad;
 
 use function array_keys;
@@ -97,7 +96,7 @@ final class Canonicalizer
     public function canonicalize(Dataset $dataset): CanonicalizationResult
     {
         // Step 1: create the canonicalization state.
-        $state = new CanonicalizationState($this->hashAlgorithm, new Serializer());
+        $state = new CanonicalizationState($this->hashAlgorithm);
 
         // Step 2: relate each blank node to the quads that mention it. A quad
         // that mentions the same blank node twice is listed once.

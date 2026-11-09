@@ -26,7 +26,6 @@ declare(strict_types=1);
 namespace SocialWeb\Rdf\NQuads;
 
 use SocialWeb\Rdf\BlankNode;
-use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\DefaultGraph;
 use SocialWeb\Rdf\Exception\InvalidArgument;
 use SocialWeb\Rdf\Exception\MalformedNQuads;
@@ -47,7 +46,7 @@ use function strpos;
 use function substr;
 
 /**
- * Parses N-Quads 1.1 documents into quads
+ * Parses an N-Quads 1.1 document into quads, one statement at a time
  *
  * The parser implements the N-Quads 1.1 grammar and nothing more: one
  * statement per line, comments, IRI references with `\u` and `\U` escapes,
@@ -56,33 +55,27 @@ use function substr;
  * be UTF-8. The first line that does not conform raises {@see MalformedNQuads}
  * with its line and column; nothing is skipped or repaired.
  *
- * @link https://www.w3.org/TR/n-quads/
+ * @internal
+ *
+ * @link https://www.w3.org/TR/n-quads/#sec-grammar RDF 1.1 N-Quads, Grammar
  */
 final class Parser
 {
     /**
-     * Parses a whole document into a dataset
-     *
-     * @throws MalformedNQuads
-     */
-    public function parse(string $document): Dataset
-    {
-        return new Dataset($this->parseQuads($document));
-    }
-
-    /**
      * Yields one quad per statement as the document is read
      *
      * The document is walked in place, one line at a time, so no second copy
-     * of it is made. Nothing is parsed until the returned iterable is consumed,
-     * and it may be traversed only once. A caller that never consumes it never sees a
-     * {@see MalformedNQuads}, however malformed the document is.
+     * of it is made. Nothing is parsed until the returned iterable is
+     * consumed, and it may be traversed only once. A caller that never
+     * consumes it never sees a {@see MalformedNQuads}, however malformed the
+     * document is.
      *
      * @return iterable<int, Quad>
      *
-     * @throws MalformedNQuads
+     * @throws MalformedNQuads if a line does not conform to the N-Quads
+     *     grammar
      */
-    public function parseQuads(string $document): iterable
+    public static function parse(string $document): iterable
     {
         $offset = 0;
         $lineNumber = 0;
@@ -90,7 +83,7 @@ final class Parser
         do {
             $lineLength = strcspn($document, "\r\n", $offset);
             $lineNumber++;
-            $quad = $this->parseLine(substr($document, $offset, $lineLength), $lineNumber);
+            $quad = self::parseLine(substr($document, $offset, $lineLength), $lineNumber);
             $offset += $lineLength;
 
             // A line break is CRLF, CR, or LF, and CRLF counts as one break.
@@ -108,9 +101,10 @@ final class Parser
     }
 
     /**
-     * @throws MalformedNQuads
+     * @throws MalformedNQuads if the line does not conform to the N-Quads
+     *     grammar
      */
-    private function parseLine(string $line, int $lineNumber): ?Quad
+    private static function parseLine(string $line, int $lineNumber): ?Quad
     {
         if (preg_match('//u', $line) !== 1) {
             throw new MalformedNQuads(
@@ -129,13 +123,13 @@ final class Parser
             return null;
         }
 
-        $subject = $this->parseSubject($scanner);
+        $subject = self::parseSubject($scanner);
         $scanner->skipWhitespace();
-        $predicate = $this->parsePredicate($scanner);
+        $predicate = self::parsePredicate($scanner);
         $scanner->skipWhitespace();
-        $object = $this->parseObject($scanner);
+        $object = self::parseObject($scanner);
         $scanner->skipWhitespace();
-        $graph = $this->parseGraphLabel($scanner);
+        $graph = self::parseGraphLabel($scanner);
         $scanner->skipWhitespace();
 
         if (!$scanner->accept('.')) {
@@ -154,11 +148,11 @@ final class Parser
         return new Quad($subject, $predicate, $object, $graph);
     }
 
-    private function parseSubject(Scanner $scanner): Resource
+    private static function parseSubject(Scanner $scanner): Resource
     {
         return match ($scanner->peek()) {
-            '<' => $this->parseIri($scanner),
-            '_' => $this->parseBlankNode($scanner),
+            '<' => self::parseIri($scanner),
+            '_' => self::parseBlankNode($scanner),
             default => throw $scanner->error(
                 MalformedNQuadsReason::InvalidSubject,
                 'expected an IRI or a blank node label as the subject',
@@ -166,21 +160,21 @@ final class Parser
         };
     }
 
-    private function parsePredicate(Scanner $scanner): Iri
+    private static function parsePredicate(Scanner $scanner): Iri
     {
         if ($scanner->peek() !== '<') {
             throw $scanner->error(MalformedNQuadsReason::InvalidPredicate, 'expected an IRI as the predicate');
         }
 
-        return $this->parseIri($scanner);
+        return self::parseIri($scanner);
     }
 
-    private function parseObject(Scanner $scanner): Term
+    private static function parseObject(Scanner $scanner): Term
     {
         return match ($scanner->peek()) {
-            '<' => $this->parseIri($scanner),
-            '_' => $this->parseBlankNode($scanner),
-            '"' => $this->parseLiteral($scanner),
+            '<' => self::parseIri($scanner),
+            '_' => self::parseBlankNode($scanner),
+            '"' => self::parseLiteral($scanner),
             default => throw $scanner->error(
                 MalformedNQuadsReason::InvalidObject,
                 'expected an IRI, a blank node label, or a literal as the object',
@@ -188,16 +182,16 @@ final class Parser
         };
     }
 
-    private function parseGraphLabel(Scanner $scanner): GraphName
+    private static function parseGraphLabel(Scanner $scanner): GraphName
     {
         return match ($scanner->peek()) {
-            '<' => $this->parseIri($scanner),
-            '_' => $this->parseBlankNode($scanner),
+            '<' => self::parseIri($scanner),
+            '_' => self::parseBlankNode($scanner),
             default => new DefaultGraph(),
         };
     }
 
-    private function parseIri(Scanner $scanner): Iri
+    private static function parseIri(Scanner $scanner): Iri
     {
         $start = $scanner->position();
         $text = $scanner->takeIriRef();
@@ -206,7 +200,7 @@ final class Parser
             throw $scanner->error(MalformedNQuadsReason::MalformedIriReference, 'malformed IRI reference');
         }
 
-        $value = $this->unescape($text);
+        $value = self::unescape($text);
 
         if ($value === null) {
             throw $scanner->error(
@@ -228,7 +222,7 @@ final class Parser
         }
     }
 
-    private function parseBlankNode(Scanner $scanner): BlankNode
+    private static function parseBlankNode(Scanner $scanner): BlankNode
     {
         $label = $scanner->take(Grammar::BLANK_NODE_LABEL_TOKEN);
 
@@ -239,7 +233,7 @@ final class Parser
         return new BlankNode($label);
     }
 
-    private function parseLiteral(Scanner $scanner): Literal
+    private static function parseLiteral(Scanner $scanner): Literal
     {
         $start = $scanner->position();
         $text = $scanner->takeStringLiteralQuote();
@@ -248,7 +242,7 @@ final class Parser
             throw $scanner->error(MalformedNQuadsReason::MalformedStringLiteral, 'malformed string literal');
         }
 
-        $lexicalForm = $this->unescape($text);
+        $lexicalForm = self::unescape($text);
 
         if ($lexicalForm === null) {
             throw $scanner->error(
@@ -266,7 +260,7 @@ final class Parser
                 throw $scanner->error(MalformedNQuadsReason::MissingDatatype, 'expected a datatype IRI after "^^"');
             }
 
-            $datatype = $this->parseIri($scanner);
+            $datatype = self::parseIri($scanner);
         } elseif ($scanner->peek() === '@') {
             $language = $scanner->take(Grammar::LANGTAG_TOKEN);
 
@@ -296,7 +290,7 @@ final class Parser
      * is a `\u` or `\U` escape that names a surrogate or a code point above
      * U+10FFFF, for which this returns null.
      */
-    private function unescape(string $text): ?string
+    private static function unescape(string $text): ?string
     {
         $result = '';
         $position = 0;

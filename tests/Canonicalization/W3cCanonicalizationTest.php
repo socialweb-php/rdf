@@ -6,8 +6,8 @@ namespace SocialWeb\Test\Rdf\Canonicalization;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use SocialWeb\Rdf\Canonicalization\Canonicalizer;
+use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\IterationLimitExceeded;
-use SocialWeb\Rdf\NQuads\Parser;
 use SocialWeb\Test\Rdf\TestCase;
 
 use function json_decode;
@@ -31,7 +31,7 @@ final class W3cCanonicalizationTest extends TestCase
     public function testEvaluation(string $action, ?string $result, string $hashAlgorithm, int $workFactor): void
     {
         $this->assertNotNull($result);
-        $dataset = (new Parser())->parse(W3cManifest::read($action));
+        $dataset = Dataset::fromNQuads(W3cManifest::read($action));
 
         $canonical = (new Canonicalizer($hashAlgorithm, $workFactor))->canonicalize($dataset);
 
@@ -56,7 +56,7 @@ final class W3cCanonicalizationTest extends TestCase
         $this->assertNotNull($result);
         $expected = json_decode(W3cManifest::read($result), true, 512, JSON_THROW_ON_ERROR);
         $this->assertIsArray($expected);
-        $dataset = (new Parser())->parse(W3cManifest::read($action));
+        $dataset = Dataset::fromNQuads(W3cManifest::read($action));
 
         $actual = (new Canonicalizer($hashAlgorithm, $workFactor))->canonicalize($dataset)->issuedIdentifiers();
 
@@ -81,7 +81,7 @@ final class W3cCanonicalizationTest extends TestCase
         int $workFactor,
     ): void {
         $this->assertNull($result);
-        $dataset = (new Parser())->parse(W3cManifest::read($action));
+        $dataset = Dataset::fromNQuads(W3cManifest::read($action));
 
         $this->expectException(IterationLimitExceeded::class);
 
@@ -103,7 +103,7 @@ final class W3cCanonicalizationTest extends TestCase
         string $hashAlgorithm,
         int $workFactor,
     ): void {
-        $dataset = (new Parser())->parse(W3cManifest::read($action));
+        $dataset = Dataset::fromNQuads(W3cManifest::read($action));
 
         $this->expectException(IterationLimitExceeded::class);
 

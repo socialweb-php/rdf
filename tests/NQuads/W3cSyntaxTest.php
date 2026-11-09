@@ -11,6 +11,7 @@ use SocialWeb\Test\Rdf\TestCase;
 
 use function explode;
 use function iterator_count;
+use function iterator_to_array;
 use function ltrim;
 use function str_replace;
 use function str_starts_with;
@@ -30,7 +31,7 @@ final class W3cSyntaxTest extends TestCase
     {
         $document = W3cManifest::read($path);
 
-        $quads = iterator_count((new Parser())->parseQuads($document));
+        $quads = iterator_count(Parser::parse($document));
 
         $this->assertSame(self::countStatementLines($document), $quads);
     }
@@ -50,7 +51,7 @@ final class W3cSyntaxTest extends TestCase
 
         $this->expectException(MalformedNQuads::class);
 
-        (new Parser())->parse($document);
+        iterator_to_array(Parser::parse($document), false);
     }
 
     /**

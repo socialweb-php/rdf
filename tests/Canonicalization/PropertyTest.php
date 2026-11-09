@@ -8,7 +8,6 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Canonicalization\Canonicalizer;
 use SocialWeb\Rdf\Dataset;
-use SocialWeb\Rdf\NQuads\Parser;
 use SocialWeb\Rdf\Quad;
 use SocialWeb\Test\Rdf\TestCase;
 
@@ -30,7 +29,7 @@ final class PropertyTest extends TestCase
     ): void {
         $this->assertNotNull($result);
         $canonicalizer = new Canonicalizer($hashAlgorithm, $workFactor);
-        $canonical = $canonicalizer->canonicalize((new Parser())->parse(W3cManifest::read($action)));
+        $canonical = $canonicalizer->canonicalize(Dataset::fromNQuads(W3cManifest::read($action)));
 
         $again = $canonicalizer->canonicalize($canonical->dataset());
 
@@ -46,7 +45,7 @@ final class PropertyTest extends TestCase
         int $workFactor,
     ): void {
         $this->assertNotNull($result);
-        $dataset = self::relabel((new Parser())->parse(W3cManifest::read($action)));
+        $dataset = self::relabel(Dataset::fromNQuads(W3cManifest::read($action)));
 
         $canonical = (new Canonicalizer($hashAlgorithm, $workFactor))->canonicalize($dataset);
 

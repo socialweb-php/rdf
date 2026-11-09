@@ -6,8 +6,7 @@ namespace SocialWeb\Test\Rdf\Canonicalization;
 
 use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Canonicalization\CanonicalizationState;
-use SocialWeb\Rdf\NQuads\Parser;
-use SocialWeb\Rdf\NQuads\Serializer;
+use SocialWeb\Rdf\Dataset;
 
 use function in_array;
 
@@ -23,9 +22,9 @@ final class StateBuilder
         string $hashAlgorithm = 'sha256',
         int $deepIterations = 100,
     ): CanonicalizationState {
-        $state = new CanonicalizationState($hashAlgorithm, new Serializer());
+        $state = new CanonicalizationState($hashAlgorithm);
 
-        foreach ((new Parser())->parse($document) as $quad) {
+        foreach (Dataset::fromNQuads($document) as $quad) {
             $seen = [];
 
             foreach ([$quad->subject, $quad->object, $quad->graph] as $component) {

@@ -9,12 +9,11 @@ use SocialWeb\Rdf\BlankNode;
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Iri;
 use SocialWeb\Rdf\Literal;
-use SocialWeb\Rdf\NQuads\Parser;
-use SocialWeb\Rdf\NQuads\Serializer;
 use SocialWeb\Rdf\Quad;
 use SocialWeb\Test\Rdf\TestCase;
 
 use function count;
+use function iterator_to_array;
 
 /**
  * Parsing the serialization of a dataset yields an equal dataset, and
@@ -41,23 +40,23 @@ final class RoundTripTest extends TestCase
             new Quad(new Iri('http://example.com/é'), new Iri('http://example.com/p?q=1&r=2#f'), new Literal('x')),
         ]);
 
-        $serialized = (new Serializer())->serialize($dataset);
-        $parsed = (new Parser())->parse($serialized);
+        $serialized = $dataset->toNQuads();
+        $parsed = Dataset::fromNQuads($serialized);
 
         $this->assertDatasetEquals($dataset, $parsed);
-        $this->assertSame($serialized, (new Serializer())->serialize($parsed));
+        $this->assertSame($serialized, $parsed->toNQuads());
     }
 
     #[DataProvider('positiveSyntaxTests')]
     public function testEveryPositiveW3cFixtureSurvivesARoundTrip(string $path): void
     {
-        $dataset = (new Parser())->parse(W3cManifest::read($path));
+        $dataset = Dataset::fromNQuads(W3cManifest::read($path));
 
-        $serialized = (new Serializer())->serialize($dataset);
-        $parsed = (new Parser())->parse($serialized);
+        $serialized = $dataset->toNQuads();
+        $parsed = Dataset::fromNQuads($serialized);
 
         $this->assertDatasetEquals($dataset, $parsed);
-        $this->assertSame($serialized, (new Serializer())->serialize($parsed));
+        $this->assertSame($serialized, $parsed->toNQuads());
     }
 
     /**
@@ -70,8 +69,8 @@ final class RoundTripTest extends TestCase
 
     private function assertDatasetEquals(Dataset $expected, Dataset $actual): void
     {
-        $expectedQuads = $expected->toArray();
-        $actualQuads = $actual->toArray();
+        $expectedQuads = iterator_to_array($expected);
+        $actualQuads = iterator_to_array($actual);
 
         $this->assertCount(count($expectedQuads), $actualQuads);
 

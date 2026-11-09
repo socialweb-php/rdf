@@ -66,12 +66,12 @@ final class HashFirstDegreeQuads
         $nquads = [];
 
         foreach ($this->state->blankNodeToQuads[$identifier] as $quad) {
-            $nquads[] = $this->state->serializer->serializeQuad(new Quad(
+            $nquads[] = new Quad(
                 $quad->subject instanceof BlankNode ? $this->placeholder($quad->subject, $identifier) : $quad->subject,
                 $quad->predicate,
                 $quad->object instanceof BlankNode ? $this->placeholder($quad->object, $identifier) : $quad->object,
                 $quad->graph instanceof BlankNode ? $this->placeholder($quad->graph, $identifier) : $quad->graph,
-            ));
+            )->toNQuads();
         }
 
         sort($nquads, SORT_STRING);
