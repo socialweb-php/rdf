@@ -61,7 +61,7 @@ $first = $canonicalizer->canonicalize(Dataset::fromNQuads($fromTheGamemaster));
 $second = $canonicalizer->canonicalize(Dataset::fromNQuads($fromAPlayer));
 
 echo $first->toNQuads();
-echo hash('sha256', $first->toNQuads()), "\n";
+echo hash('sha256', $first->toNQuads()) . "\n";
 echo $first->toNQuads() === $second->toNQuads() ? "the same bytes\n" : "different bytes\n";
 ```
 
@@ -112,8 +112,8 @@ $unterminated = '<https://example.com/session/7> <https://example.com/ns/game#ga
 try {
     Dataset::fromNQuads($unterminated);
 } catch (MalformedNQuads $exception) {
-    echo $exception->reason->name, ' at line ', $exception->lineNumber, ', column ', $exception->columnNumber, "\n";
-    echo $exception->getMessage(), "\n";
+    echo $exception->reason->name . ' at line ' . $exception->lineNumber . ', column ' . $exception->columnNumber . "\n";
+    echo $exception->getMessage() . "\n";
 }
 ```
 
@@ -177,7 +177,7 @@ $cycle = <<<'NQUADS'
 try {
     (new Canonicalizer())->canonicalize(Dataset::fromNQuads($cycle));
 } catch (LimitExceeded $exception) {
-    echo $exception->getMessage(), "\n";
+    echo $exception->getMessage() . "\n";
 }
 
 echo (new Canonicalizer(workFactor: 2))->canonicalize(Dataset::fromNQuads($cycle))->toNQuads();
