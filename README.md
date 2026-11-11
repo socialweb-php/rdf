@@ -39,8 +39,8 @@ The two documents below record the same game session. They list the statements i
 use SocialWeb\Rdf\Canonicalization\Canonicalizer;
 use SocialWeb\Rdf\Dataset;
 
-$fromTheGameMaster = <<<'NQUADS'
-    _:session <https://example.com/ns/game#master> "Haruto Fuwa" .
+$fromTheGamemaster = <<<'NQUADS'
+    _:session <https://example.com/ns/game#gamemaster> "Haruto Fuwa" .
     _:session <https://example.com/ns/game#player> _:amara .
     _:session <https://example.com/ns/game#player> _:diego .
     _:amara <https://example.com/ns/game#plays> "Oriel" .
@@ -52,12 +52,12 @@ $fromAPlayer = <<<'NQUADS'
     _:b0 <https://example.com/ns/game#plays> "Oriel" .
     _:s <https://example.com/ns/game#player> _:b1 .
     _:s <https://example.com/ns/game#player> _:b0 .
-    _:s <https://example.com/ns/game#master> "Haruto Fuwa" .
+    _:s <https://example.com/ns/game#gamemaster> "Haruto Fuwa" .
     NQUADS;
 
 $canonicalizer = new Canonicalizer();
 
-$first = $canonicalizer->canonicalize(Dataset::fromNQuads($fromTheGameMaster));
+$first = $canonicalizer->canonicalize(Dataset::fromNQuads($fromTheGamemaster));
 $second = $canonicalizer->canonicalize(Dataset::fromNQuads($fromAPlayer));
 
 echo $first->toNQuads();
@@ -69,11 +69,11 @@ This prints:
 
 ```text
 _:c14n0 <https://example.com/ns/game#plays> "Oriel" .
-_:c14n1 <https://example.com/ns/game#master> "Haruto Fuwa" .
+_:c14n1 <https://example.com/ns/game#gamemaster> "Haruto Fuwa" .
 _:c14n1 <https://example.com/ns/game#player> _:c14n0 .
 _:c14n1 <https://example.com/ns/game#player> _:c14n2 .
 _:c14n2 <https://example.com/ns/game#plays> "Kaelen" .
-a655f148136b7c0f429238a548d88d06ef2bdc7f82a1c905348243ba0308bd95
+56cac92b540347848551936e814b3cdbe98fd04c25c551631430c747e997b79e
 the same bytes
 ```
 
@@ -107,7 +107,7 @@ A document that does not follow the N-Quads grammar raises `SocialWeb\Rdf\Except
 use SocialWeb\Rdf\Dataset;
 use SocialWeb\Rdf\Exception\MalformedNQuads;
 
-$unterminated = '<https://example.com/session/7> <https://example.com/ns/game#master> "Haruto Fuwa"';
+$unterminated = '<https://example.com/session/7> <https://example.com/ns/game#gamemaster> "Haruto Fuwa"';
 
 try {
     Dataset::fromNQuads($unterminated);
@@ -118,8 +118,8 @@ try {
 ```
 
 ```text
-MissingTerminator at line 1, column 83
-Malformed N-Quads at line 1, column 83: expected "." to end the statement; the offending line is "<https://example.com/session/7> <https://example.com/ns/game#master> "Haruto Fuwa""
+MissingTerminator at line 1, column 87
+Malformed N-Quads at line 1, column 87: expected "." to end the statement; the offending line is "<https://example.com/session/7> <https://example.com/ns/game#gamemaster> "Haruto Fuwa""
 ```
 
 ### Building a dataset from data another library holds
@@ -138,7 +138,7 @@ $session = new Iri('https://example.com/session/7');
 $roll = new BlankNode('roll');
 
 $dataset = new Dataset([
-    new Quad($session, new Iri($game . 'master'), new Literal('Haruto Fuwa')),
+    new Quad($session, new Iri($game . 'gamemaster'), new Literal('Haruto Fuwa')),
     new Quad($session, new Iri($game . 'roll'), $roll),
     new Quad($roll, new Iri($game . 'by'), new Literal('Priya Venkatesan')),
     new Quad($roll, new Iri($game . 'character'), new Literal('Tamsin', language: 'en')),
@@ -151,7 +151,7 @@ echo $dataset->toNQuads();
 This prints:
 
 ```text
-<https://example.com/session/7> <https://example.com/ns/game#master> "Haruto Fuwa" .
+<https://example.com/session/7> <https://example.com/ns/game#gamemaster> "Haruto Fuwa" .
 <https://example.com/session/7> <https://example.com/ns/game#roll> _:roll .
 _:roll <https://example.com/ns/game#by> "Priya Venkatesan" .
 _:roll <https://example.com/ns/game#character> "Tamsin"@en .
